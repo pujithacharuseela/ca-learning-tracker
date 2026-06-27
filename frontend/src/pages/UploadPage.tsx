@@ -20,9 +20,32 @@ export const UploadPage: React.FC = () => {
     queryFn: getUploadHistory,
   })
 
+  const [uploadProgress, setUploadProgress] = useState(0)
+
+  // Helper to start progress simulation
+  const startProgressSimulation = () => {
+    setUploadProgress(0)
+    const interval = setInterval(() => {
+      setUploadProgress((prev) => {
+        if (prev >= 90) {
+          clearInterval(interval)
+          return 90
+        }
+        return prev + Math.floor(Math.random() * 15) + 5
+      })
+    }, 150)
+    return interval
+  }
+
   // Mutations
   const previewMutation = useMutation({
-    mutationFn: uploadExcelPreview,
+    mutationFn: (selectedFile: File) => {
+      const interval = startProgressSimulation()
+      return uploadExcelPreview(selectedFile).finally(() => {
+        clearInterval(interval)
+        setUploadProgress(100)
+      })
+    },
     onSuccess: (data) => {
       setPreview(data)
       toast.success("Excel parsed. Review the preview before importing.")
@@ -38,7 +61,13 @@ export const UploadPage: React.FC = () => {
   })
 
   const importMutation = useMutation({
-    mutationFn: () => confirmExcelImport(file!),
+    mutationFn: () => {
+      const interval = startProgressSimulation()
+      return confirmExcelImport(file!).finally(() => {
+        clearInterval(interval)
+        setUploadProgress(100)
+      })
+    },
     onSuccess: () => {
       toast.success("Import completed successfully!")
       queryClient.invalidateQueries({ queryKey: ["uploadHistory"] })
@@ -95,8 +124,28 @@ export const UploadPage: React.FC = () => {
   return (
     <div className="space-y-6 relative">
       {(previewMutation.isPending || importMutation.isPending) && (
-        <div className="absolute inset-0 bg-[#020617]/70 backdrop-blur-sm z-50 flex items-center justify-center rounded-2xl min-h-[400px]">
-          <LoadingSpinner size="lg" text={previewMutation.isPending ? "Parsing spreadsheet..." : "Importing classes..."} />
+        <div className="absolute inset-0 bg-[#020617]/75 backdrop-blur-md z-50 flex items-center justify-center rounded-2xl min-h-[400px] p-6">
+          <div className="bg-[#0b1329] border border-slate-800/80 rounded-2xl p-8 max-w-md w-full shadow-2xl text-center space-y-6">
+            <LoadingSpinner size="lg" />
+            <div className="space-y-2">
+              <h3 className="text-lg font-bold text-slate-100">
+                {previewMutation.isPending ? "Parsing spreadsheet..." : "Importing classes..."}
+              </h3>
+              <p className="text-sm text-slate-400">Please wait, do not close or refresh this page.</p>
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between text-xs font-semibold text-indigo-400">
+                <span>Progress</span>
+                <span>{uploadProgress}%</span>
+              </div>
+              <div className="h-2.5 w-full bg-slate-950 rounded-full overflow-hidden border border-slate-800">
+                <div
+                  className="h-full bg-gradient-to-r from-violet-600 to-indigo-500 rounded-full transition-all duration-300 shadow-[0_0_8px_rgba(99,102,241,0.5)]"
+                  style={{ width: `${uploadProgress}%` }}
+                />
+              </div>
+            </div>
+          </div>
         </div>
       )}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">

@@ -57,3 +57,10 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-secondary);
 }
+
+/* Custom Toaster / Sonner close button styling */
+[data-sonner-toast] [data-close-button] {
+  left: auto !important;
+  right: 8px !important;
+  top: 8px !important;
+}
