@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useEffect, useState } from "react"
+import React, { createContext, useContext, useEffect, useState, useCallback } from "react"
 import { getProfile, login as apiLogin, register as apiRegister } from "@/api/auth"
-import { getAccessToken, setTokens, clearTokens } from "@/api/client"
+import { getAccessToken, setTokens, clearTokens, hasTokens } from "@/api/client"
 import { User, LoginRequest, RegisterRequest } from "@/types"
 
 interface AuthContextType {
@@ -18,30 +18,35 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  // Track whether we have tokens — even if profile fetch fails, user is still "authenticated"
+  const [hasValidTokens, setHasValidTokens] = useState(() => hasTokens())
 
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     const token = getAccessToken()
     if (token) {
+      setHasValidTokens(true)
       try {
         const userData = await getProfile()
         setUser(userData)
       } catch (err: any) {
         if (err.response?.status === 401 || err.response?.status === 403) {
-          logOutLocal()
+          // Only clear tokens for explicit auth failures
+          clearTokens()
+          setUser(null)
+          setHasValidTokens(false)
         }
+        // For network errors (timeout, 502, etc.), keep the user "authenticated"
+        // with tokens intact. The profile will be loaded when the server comes back.
       }
+    } else {
+      setHasValidTokens(false)
     }
     setIsLoading(false)
-  }
+  }, [])
 
   useEffect(() => {
     checkAuth()
-  }, [])
-
-  const logOutLocal = () => {
-    clearTokens()
-    setUser(null)
-  }
+  }, [checkAuth])
 
   const login = async (data: LoginRequest) => {
     setIsLoading(true)
@@ -49,6 +54,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const res = await apiLogin(data)
       setTokens(res.accessToken, res.refreshToken)
       setUser(res.user)
+      setHasValidTokens(true)
     } finally {
       setIsLoading(false)
     }
@@ -60,13 +66,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const res = await apiRegister(data)
       setTokens(res.accessToken, res.refreshToken)
       setUser(res.user)
+      setHasValidTokens(true)
     } finally {
       setIsLoading(false)
     }
   }
 
   const logout = () => {
-    logOutLocal()
+    clearTokens()
+    setUser(null)
+    setHasValidTokens(false)
   }
 
   const updateUser = (updatedUser: User) => {
@@ -77,7 +86,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     <AuthContext.Provider
       value={{
         user,
-        isAuthenticated: !!user,
+        isAuthenticated: hasValidTokens,
         isLoading,
         login,
         register,

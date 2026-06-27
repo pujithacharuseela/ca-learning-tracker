@@ -26,7 +26,11 @@ export const UploadPage: React.FC = () => {
       toast.success("Excel parsed. Review the preview before importing.")
     },
     onError: (err: any) => {
-      toast.error(err.response?.data?.message || "Failed to parse file.")
+      const msg = err.response?.data?.message
+        || err.response?.data?.error
+        || err.message
+        || "Failed to parse file."
+      toast.error(msg)
       setFile(null)
     },
   })

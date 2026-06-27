@@ -66,8 +66,8 @@ app:
   frontend-url: ${FRONTEND_URL:http://localhost:5173}
   jwt:
     secret: ${JWT_SECRET:dGhpcy1pcy1hLXNlY3JldC1rZXktZm9yLWRldmVsb3BtZW50LXB1cnBvc2VzLW9ubHktbWFrZS1zdXJlLWl0LXMtbG9uZy1lbm91Z2g=}
-    access-token-expiration: 1800000
-    refresh-token-expiration: 604800000
+    access-token-expiration: 86400000
+    refresh-token-expiration: 2592000000
 
 # ---- Springdoc / Swagger ----
 springdoc:

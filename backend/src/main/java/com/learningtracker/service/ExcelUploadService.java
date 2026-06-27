@@ -84,6 +84,9 @@ public class ExcelUploadService {
                         .errorMessage(errorMsg.toString().trim())
                         .build());
             }
+        } catch (IllegalArgumentException e) {
+            log.error("Excel validation error: {}", e.getMessage());
+            throw new InvalidOperationException(e.getMessage());
         } catch (Exception e) {
             log.error("Failed to parse excel preview", e);
             throw new InvalidOperationException("Failed to parse Excel file: " + e.getMessage());

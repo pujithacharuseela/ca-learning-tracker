@@ -18,6 +18,7 @@ public final class SecurityConstants {
     /** URL patterns that do not require authentication. */
     public static final String[] PUBLIC_URLS = {
             "/api/auth/**",
+            "/api/health",
             "/api/docs/**",
             "/v3/api-docs/**",
             "/swagger-ui/**",
