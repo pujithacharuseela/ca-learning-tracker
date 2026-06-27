@@ -69,6 +69,11 @@ export async function changePassword(data: ChangePasswordRequest): Promise<Messa
   return response.data;
 }
 
+export async function updateProfilePicture(profilePicture: string): Promise<User> {
+  const response = await apiClient.put<User>('/profile/picture', { profilePicture });
+  return response.data;
+}
+
 /* ============================================
    SETTINGS API
    ============================================ */

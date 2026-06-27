@@ -27,6 +27,7 @@ export interface User {
   role: string;
   emailVerified: boolean;
   createdAt: string;
+  profilePicture?: string;
 }
 
 export interface UserSettings {

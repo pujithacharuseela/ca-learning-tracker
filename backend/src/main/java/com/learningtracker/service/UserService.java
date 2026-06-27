@@ -64,6 +64,16 @@ public class UserService {
         userRepository.save(user);
     }
 
+    @Transactional
+    public UserResponse updateProfilePicture(String base64Image) {
+        String currentEmail = SecurityUtils.getCurrentUserEmail();
+        User user = userRepository.findByEmail(currentEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "email", currentEmail));
+        user.setProfilePicture(base64Image);
+        User updated = userRepository.save(user);
+        return mapToUserResponse(updated);
+    }
+
     public UserResponse mapToUserResponse(User user) {
         return UserResponse.builder()
                 .id(user.getId())
@@ -73,6 +83,7 @@ public class UserService {
                 .role(user.getRole())
                 .emailVerified(user.isEmailVerified())
                 .createdAt(user.getCreatedAt())
+                .profilePicture(user.getProfilePicture())
                 .build();
     }
 }

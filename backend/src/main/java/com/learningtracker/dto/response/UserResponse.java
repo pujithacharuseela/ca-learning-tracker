@@ -20,4 +20,5 @@ public class UserResponse {
     private String role;
     private boolean emailVerified;
     private LocalDateTime createdAt;
+    private String profilePicture;
 }

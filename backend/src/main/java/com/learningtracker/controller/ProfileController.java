@@ -32,4 +32,10 @@ public class ProfileController {
         userService.changePassword(request);
         return ResponseEntity.ok(new MessageResponse("Password updated successfully.", true));
     }
+
+    @PutMapping("/picture")
+    public ResponseEntity<UserResponse> updateProfilePicture(@RequestBody java.util.Map<String, String> body) {
+        String base64Image = body.get("profilePicture");
+        return ResponseEntity.ok(userService.updateProfilePicture(base64Image));
+    }
 }

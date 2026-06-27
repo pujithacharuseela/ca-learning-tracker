@@ -26,8 +26,8 @@ export const Header: React.FC<HeaderProps> = () => {
   const [notifications, setNotifications] = useState<{ id: string; text: string; time: string; type: string; read: boolean }[]>([])
 
   const loadPic = () => {
-    if (user?.email) {
-      setProfilePic(localStorage.getItem(`profile_pic_${user.email}`) || "")
+    if (user) {
+      setProfilePic(user.profilePicture || localStorage.getItem(`profile_pic_${user.email}`) || "")
     }
   }
 
@@ -35,7 +35,7 @@ export const Header: React.FC<HeaderProps> = () => {
     loadPic()
     window.addEventListener("profile-picture-updated", loadPic)
     return () => window.removeEventListener("profile-picture-updated", loadPic)
-  }, [user?.email])
+  }, [user])
 
   useEffect(() => {
     const fetchNotifications = async () => {

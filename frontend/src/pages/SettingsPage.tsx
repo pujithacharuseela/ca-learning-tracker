@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import { useAuth } from "@/contexts/AuthContext"
-import { updateProfile, getSettings, updateSettings } from "@/api/auth"
+import { updateProfile, getSettings, updateSettings, updateProfilePicture } from "@/api/auth"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { Input } from "@/components/ui/input"
@@ -17,9 +17,9 @@ export const SettingsPage: React.FC = () => {
   const [lastName, setLastName] = useState(user?.lastName || "")
   const [email, setEmail] = useState(user?.email || "")
   
-  // Custom Profile Picture local storage mock for demo/instant update since it isn't persisted on database
+  // Initialize profile picture from user details or local storage fallback
   const [profilePic, setProfilePic] = useState<string>(() => {
-    return localStorage.getItem(`profile_pic_${user?.email}`) || ""
+    return user?.profilePicture || localStorage.getItem(`profile_pic_${user?.email}`) || ""
   })
 
   const updateProfileMutation = useMutation({
@@ -44,6 +44,17 @@ export const SettingsPage: React.FC = () => {
     },
   })
 
+  const updatePictureMutation = useMutation({
+    mutationFn: (base64: string) => updateProfilePicture(base64),
+    onSuccess: (updatedUser) => {
+      updateUser(updatedUser)
+      localStorage.setItem(`profile_pic_${user?.email}`, updatedUser.profilePicture || "")
+      window.dispatchEvent(new Event("profile-picture-updated"))
+      toast.success("Profile photo updated successfully!")
+    },
+    onError: (err: any) => toast.error(err.response?.data?.message || "Failed to upload photo."),
+  })
+
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0]
@@ -51,10 +62,7 @@ export const SettingsPage: React.FC = () => {
       reader.onloadend = () => {
         const base64String = reader.result as string
         setProfilePic(base64String)
-        localStorage.setItem(`profile_pic_${user?.email}`, base64String)
-        // Fire a custom event to update avatar in other header/sidebar components instantly
-        window.dispatchEvent(new Event("profile-picture-updated"))
-        toast.success("Profile photo updated successfully!")
+        updatePictureMutation.mutate(base64String)
       }
       reader.readAsDataURL(file)
     }
