@@ -20,4 +20,5 @@ public interface NoteRepository extends JpaRepository<Note, UUID> {
      * @return list of notes
      */
     List<Note> findByStudySessionId(UUID studySessionId);
+    void deleteByUserId(UUID userId);
 }

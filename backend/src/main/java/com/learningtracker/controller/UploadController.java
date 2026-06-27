@@ -32,4 +32,10 @@ public class UploadController {
     public ResponseEntity<List<UploadedFile>> getHistory() {
         return ResponseEntity.ok(excelUploadService.getUploadHistory());
     }
+
+    @DeleteMapping("/reset")
+    public ResponseEntity<Void> resetData() {
+        excelUploadService.clearAllUserData();
+        return ResponseEntity.ok().build();
+    }
 }

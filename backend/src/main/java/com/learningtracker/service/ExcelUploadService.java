@@ -32,6 +32,10 @@ public class ExcelUploadService {
     private final UploadedFileRepository uploadedFileRepository;
     private final LearningClassRepository learningClassRepository;
     private final UserRepository userRepository;
+    private final LearningPlanRepository learningPlanRepository;
+    private final ScheduleRepository scheduleRepository;
+    private final NoteRepository noteRepository;
+    private final StudySessionRepository studySessionRepository;
 
     public ExcelPreviewResponse previewExcelFile(MultipartFile file) {
         String email = SecurityUtils.getCurrentUserEmail();
@@ -167,5 +171,20 @@ public class ExcelUploadService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
         return uploadedFileRepository.findByUserIdOrderByUploadedAtDesc(user.getId());
+    }
+
+    @Transactional
+    public void clearAllUserData() {
+        String email = SecurityUtils.getCurrentUserEmail();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
+        UUID userId = user.getId();
+
+        studySessionRepository.deleteByUserId(userId);
+        noteRepository.deleteByUserId(userId);
+        scheduleRepository.deleteByUserId(userId);
+        learningPlanRepository.deleteByUserId(userId);
+        learningClassRepository.deleteByUserId(userId);
+        uploadedFileRepository.deleteByUserId(userId);
     }
 }

@@ -30,4 +30,5 @@ public interface LearningPlanRepository extends JpaRepository<LearningPlan, UUID
      * @return list of matching learning plans
      */
     List<LearningPlan> findByUserIdAndStatus(UUID userId, PlanStatus status);
+    void deleteByUserId(UUID userId);
 }

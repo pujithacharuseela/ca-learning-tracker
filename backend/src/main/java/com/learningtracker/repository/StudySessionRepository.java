@@ -19,4 +19,5 @@ public interface StudySessionRepository extends JpaRepository<StudySession, UUID
     Integer sumActualDurationMinutesByUserId(@Param("userId") UUID userId);
 
     List<StudySession> findByUserIdAndCompletedAtBetween(UUID userId, LocalDateTime start, LocalDateTime end);
+    void deleteByUserId(UUID userId);
 }

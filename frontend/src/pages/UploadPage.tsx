@@ -1,8 +1,8 @@
 import React, { useState } from "react"
-import { uploadExcelPreview, confirmExcelImport, getUploadHistory } from "@/api/planner"
+import { uploadExcelPreview, confirmExcelImport, getUploadHistory, resetUserData } from "@/api/planner"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-import { Upload, FileSpreadsheet, CheckCircle2, AlertTriangle, History } from "lucide-react"
+import { Upload, FileSpreadsheet, CheckCircle2, AlertTriangle, History, Trash2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
@@ -56,6 +56,25 @@ export const UploadPage: React.FC = () => {
     },
   })
 
+  const resetMutation = useMutation({
+    mutationFn: resetUserData,
+    onSuccess: () => {
+      toast.success("Workspace reset. All previous classes and plans cleared successfully.")
+      queryClient.invalidateQueries({ queryKey: ["uploadHistory"] })
+      queryClient.invalidateQueries({ queryKey: ["classes"] })
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] })
+      setFile(null)
+      setPreview(null)
+    },
+    onError: (err: any) => {
+      const msg = err.response?.data?.message
+        || err.response?.data?.error
+        || err.message
+        || "Reset failed."
+      toast.error(msg)
+    },
+  })
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0]
@@ -80,7 +99,22 @@ export const UploadPage: React.FC = () => {
           <LoadingSpinner size="lg" text={previewMutation.isPending ? "Parsing spreadsheet..." : "Importing classes..."} />
         </div>
       )}
-      <h1 className="text-3xl font-extrabold tracking-tight text-slate-100">Upload Plan</h1>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <h1 className="text-3xl font-extrabold tracking-tight text-slate-100">Upload Plan</h1>
+        <Button
+          variant="destructive"
+          onClick={() => {
+            if (window.confirm("Are you sure you want to clear all uploaded classes, study plans, notes, and schedules? This cannot be undone.")) {
+              resetMutation.mutate();
+            }
+          }}
+          disabled={resetMutation.isPending}
+          className="flex items-center gap-2 rounded-xl"
+        >
+          <Trash2 className="h-4 w-4" />
+          {resetMutation.isPending ? "Clearing..." : "Clear Workspace"}
+        </Button>
+      </div>
 
       <div className="grid gap-6 md:grid-cols-3">
         {/* Upload Zone */}
@@ -185,7 +219,7 @@ export const UploadPage: React.FC = () => {
                               </span>
                             ) : (
                               <span className="inline-flex items-center gap-1 text-rose-600 dark:text-rose-400 font-medium" title={row.errorMessage}>
-                                <AlertTriangle className="h-4 w-4" /> Rejected
+                                <AlertTriangle className="h-4 w-4" /> {row.errorMessage && row.errorMessage.includes("Duplicate") ? "Duplicate" : "Rejected"}
                               </span>
                             )}
                           </td>

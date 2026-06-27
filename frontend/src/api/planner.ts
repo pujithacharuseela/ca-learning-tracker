@@ -34,6 +34,10 @@ export async function getUploadHistory(): Promise<any[]> {
   return response.data;
 }
 
+export async function resetUserData(): Promise<void> {
+  await apiClient.delete('/uploads/reset');
+}
+
 export async function getClasses(
   search: string,
   page: number,

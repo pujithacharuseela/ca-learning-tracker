@@ -16,4 +16,5 @@ public interface LearningClassRepository extends JpaRepository<LearningClass, UU
     Optional<LearningClass> findByUserIdAndClassNo(UUID userId, int classNo);
     boolean existsByUserIdAndClassNo(UUID userId, int classNo);
     long countByUserId(UUID userId);
+    void deleteByUserId(UUID userId);
 }
