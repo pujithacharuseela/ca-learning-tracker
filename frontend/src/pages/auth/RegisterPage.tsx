@@ -32,10 +32,16 @@ export const RegisterPage: React.FC = () => {
   const onSubmit = async (values: RegisterFormValues) => {
     try {
       await register(values)
-      toast.success("Registration successful! Check your email for OTP verification.")
+      toast.success("Successfully registered! Please verify OTP.")
       navigate("/verify-otp", { state: { email: values.email } })
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Registration failed. Try again.")
+      const serverError = error.response?.data?.message
+      const validationErrors = error.response?.data?.errors
+      if (validationErrors && Array.isArray(validationErrors)) {
+        toast.error(validationErrors.join(" | "))
+      } else {
+        toast.error(serverError || "Registration failed. Try again.")
+      }
     }
   }
 
