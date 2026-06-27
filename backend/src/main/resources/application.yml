@@ -1,0 +1,85 @@
+# ============================================
+# Personal Learning Tracker - Application Config
+# ============================================
+
+server:
+  port: ${PORT:8080}
+
+spring:
+  # ---- DataSource ----
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/postgres}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
+      max-lifetime: 1200000
+      pool-name: LearningTrackerPool
+
+  # ---- JPA / Hibernate ----
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        jdbc:
+          time_zone: UTC
+    open-in-view: false
+
+  # ---- Mail ----
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME:placeholder@gmail.com}
+    password: ${MAIL_PASSWORD:placeholderpassword}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+
+  # ---- File Upload ----
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+  # ---- Thymeleaf ----
+  thymeleaf:
+    check-template-location: false
+
+# ---- Application Properties ----
+app:
+  name: Learning Tracker
+  frontend-url: ${FRONTEND_URL:http://localhost:5173}
+  jwt:
+    secret: ${JWT_SECRET:dGhpcy1pcy1hLXNlY3JldC1rZXktZm9yLWRldmVsb3BtZW50LXB1cnBvc2VzLW9ubHktbWFrZS1zdXJlLWl0LXMtbG9uZy1lbm91Z2g=}
+    access-token-expiration: 1800000
+    refresh-token-expiration: 604800000
+
+# ---- Springdoc / Swagger ----
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+
+# ---- Logging ----
+logging:
+  level:
+    root: INFO
+    com.learningtracker: INFO

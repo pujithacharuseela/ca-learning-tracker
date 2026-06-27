@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Personal Learning Tracker</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #F8FAFC;
+            color: #0F172A;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background: #FFFFFF;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+            border: 1px solid #E2E8F0;
+        }
+        .header {
+            background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+            color: #FFFFFF;
+            padding: 32px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+        }
+        .content {
+            padding: 40px 32px;
+            line-height: 1.6;
+        }
+        .content p {
+            margin-top: 0;
+            margin-bottom: 24px;
+            font-size: 16px;
+            color: #334155;
+        }
+        .btn-container {
+            text-align: center;
+            margin: 32px 0;
+        }
+        .btn {
+            display: inline-block;
+            background-color: #4F46E5;
+            color: #FFFFFF !important;
+            text-decoration: none;
+            padding: 12px 32px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 16px;
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+            transition: all 0.2s ease;
+        }
+        .footer {
+            background-color: #F1F5F9;
+            padding: 24px;
+            text-align: center;
+            font-size: 14px;
+            color: #64748B;
+            border-top: 1px solid #E2E8F0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Personal Learning Tracker</h1>
+        </div>
+        <div class="content">
+            <p>Hi <span th:text="${firstName}">User</span>,</p>
+            <p>Welcome to the Personal Learning Tracker! We're thrilled to help you manage your study, achieve goals, and build consistent learning streaks.</p>
+            <p>To start organizing your classes, uploading study plans, and keeping track of your progress, click the button below to log in and configure your account.</p>
+            <div class="btn-container">
+                <a th:href="${frontendUrl}" class="btn">Get Started</a>
+            </div>
+            <p>If you have any questions or need support, don't hesitate to reach out.</p>
+            <p>Happy Learning!</p>
+        </div>
+        <div class="footer">
+            &copy; 2026 Personal Learning Tracker. All rights reserved.<br>
+            If you did not sign up for this service, you can safely ignore this email.
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,15 @@
+# ============================================
+# Production Profile
+# ============================================
+
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+
+logging:
+  level:
+    root: WARN
+    com.learningtracker: WARN
+    org.springframework: WARN

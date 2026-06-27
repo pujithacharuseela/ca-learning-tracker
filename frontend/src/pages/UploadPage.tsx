@@ -1,0 +1,196 @@
+import React, { useState } from "react"
+import { uploadExcelPreview, confirmExcelImport, getUploadHistory } from "@/api/planner"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { toast } from "sonner"
+import { Upload, FileSpreadsheet, CheckCircle2, AlertTriangle, History } from "lucide-react"
+
+import { Button } from "@/components/ui/button"
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
+
+export const UploadPage: React.FC = () => {
+  const queryClient = useQueryClient()
+  const [file, setFile] = useState<File | null>(null)
+  const [preview, setPreview] = useState<any>(null)
+
+  // Fetch upload history
+  const { data: history } = useQuery({
+    queryKey: ["uploadHistory"],
+    queryFn: getUploadHistory,
+  })
+
+  // Mutations
+  const previewMutation = useMutation({
+    mutationFn: uploadExcelPreview,
+    onSuccess: (data) => {
+      setPreview(data)
+      toast.success("Excel parsed. Review the preview before importing.")
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || "Failed to parse file.")
+      setFile(null)
+    },
+  })
+
+  const importMutation = useMutation({
+    mutationFn: () => confirmExcelImport(file!, preview),
+    onSuccess: () => {
+      toast.success("Import completed successfully!")
+      queryClient.invalidateQueries({ queryKey: ["uploadHistory"] })
+      setFile(null)
+      setPreview(null)
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || "Import failed.")
+    },
+  })
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const selectedFile = e.target.files[0]
+      setFile(selectedFile)
+      previewMutation.mutate(selectedFile)
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-50">Upload Plan</h1>
+
+      <div className="grid gap-6 md:grid-cols-3">
+        {/* Upload Zone */}
+        <Card className="md:col-span-2">
+          <CardHeader>
+            <CardTitle>Excel Upload</CardTitle>
+            <CardDescription>
+              Upload `.xlsx` files. Must contain ClassNo, Day / Topic, Duration (Minutes) and Duration (Hours + Minutes) columns.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {!preview ? (
+              <div className="border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-xl p-12 text-center hover:bg-slate-50 dark:hover:bg-slate-900/50 transition cursor-pointer relative">
+                <input
+                  type="file"
+                  accept=".xlsx"
+                  className="absolute inset-0 opacity-0 cursor-pointer"
+                  onChange={handleFileChange}
+                />
+                <Upload className="mx-auto h-12 w-12 text-indigo-600 dark:text-indigo-400 animate-bounce" />
+                <h3 className="mt-4 text-lg font-semibold text-slate-900 dark:text-slate-50">
+                  Drag and drop your spreadsheet here
+                </h3>
+                <p className="mt-2 text-sm text-slate-500">or click to browse from files</p>
+              </div>
+            ) : (
+              <div className="space-y-6 animate-in fade-in zoom-in-95">
+                {/* Parsing Summary */}
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-lg text-center">
+                    <span className="text-sm text-slate-500">Total Rows</span>
+                    <p className="text-2xl font-bold mt-1">{preview.totalRows}</p>
+                  </div>
+                  <div className="bg-emerald-50 dark:bg-emerald-950/20 p-4 rounded-lg text-center">
+                    <span className="text-sm text-emerald-600 dark:text-emerald-400">Valid Rows</span>
+                    <p className="text-2xl font-bold mt-1 text-emerald-600 dark:text-emerald-400">
+                      {preview.validRowsCount}
+                    </p>
+                  </div>
+                  <div className="bg-rose-50 dark:bg-rose-950/20 p-4 rounded-lg text-center">
+                    <span className="text-sm text-rose-600 dark:text-rose-400">Invalid Rows</span>
+                    <p className="text-2xl font-bold mt-1 text-rose-600 dark:text-rose-400">
+                      {preview.invalidRowsCount}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Confirm Actions */}
+                <div className="flex justify-between items-center bg-slate-50 dark:bg-slate-900 p-4 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <FileSpreadsheet className="h-5 w-5 text-indigo-600" />
+                    <span className="text-sm font-semibold">{file?.name}</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button variant="outline" onClick={() => { setFile(null); setPreview(null); }}>
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={() => importMutation.mutate()}
+                      disabled={preview.validRowsCount === 0 || importMutation.isPending}
+                      className="bg-indigo-600 hover:bg-indigo-500 text-white"
+                    >
+                      Import Valid Rows
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Rows Preview Table */}
+                <div className="border rounded-lg overflow-x-auto">
+                  <table className="w-full text-sm text-left">
+                    <thead className="bg-slate-50 dark:bg-slate-900 text-xs font-semibold text-slate-500 uppercase">
+                      <tr>
+                        <th className="px-4 py-3">Row</th>
+                        <th className="px-4 py-3">Class No</th>
+                        <th className="px-4 py-3">Topic</th>
+                        <th className="px-4 py-3">Duration</th>
+                        <th className="px-4 py-3">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y">
+                      {preview.rows.map((row: any) => (
+                        <tr key={row.rowIndex} className="hover:bg-slate-50 dark:hover:bg-slate-900/50">
+                          <td className="px-4 py-3 font-medium">{row.rowIndex}</td>
+                          <td className="px-4 py-3">{row.classNo}</td>
+                          <td className="px-4 py-3">{row.topic}</td>
+                          <td className="px-4 py-3">{row.durationDisplay}</td>
+                          <td className="px-4 py-3">
+                            {row.valid ? (
+                              <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
+                                <CheckCircle2 className="h-4 w-4" /> Ready
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-rose-600 dark:text-rose-400 font-medium" title={row.errorMessage}>
+                                <AlertTriangle className="h-4 w-4" /> Rejected
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* History Panel */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <History className="h-5 w-5 text-slate-500" /> Upload History
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {history?.length === 0 ? (
+              <p className="text-sm text-slate-500 text-center py-6">No files uploaded yet.</p>
+            ) : (
+              history?.map((hist) => (
+                <div key={hist.id} className="border-b pb-3 last:border-0 last:pb-0">
+                  <div className="flex justify-between items-start">
+                    <span className="text-sm font-semibold truncate max-w-[150px]">{hist.originalName}</span>
+                    <span className="text-[10px] bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full dark:bg-slate-900 dark:text-indigo-400">
+                      {hist.status}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-xs text-slate-500 mt-1">
+                    <span>Valid: {hist.validRows} / {hist.totalRows}</span>
+                    <span>{new Date(hist.uploadedAt).toLocaleDateString()}</span>
+                  </div>
+                </div>
+              ))
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  )
+}

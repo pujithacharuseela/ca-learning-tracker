@@ -1,0 +1,259 @@
+import React, { useState, useEffect } from "react"
+import { getDashboard, startSession, completeSession } from "@/api/dashboard"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { toast } from "sonner"
+import { Play, CheckCircle, Clock, BookOpen, Flame, Award, Calendar } from "lucide-react"
+
+import { Button } from "@/components/ui/button"
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+
+export const DashboardPage: React.FC = () => {
+  const queryClient = useQueryClient()
+  const [activeSession, setActiveSession] = useState<any>(null)
+  const [seconds, setSeconds] = useState(0)
+
+  // Complete Session Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [difficulty, setDifficulty] = useState("3")
+  const [rating, setRating] = useState("3")
+  const [notes, setNotes] = useState("")
+  const [status, setStatus] = useState("COMPLETED")
+
+  // Load Dashboard Data
+  const { data: dashboard, isLoading } = useQuery({
+    queryKey: ["dashboard"],
+    queryFn: getDashboard,
+  })
+
+  // Mutations
+  const startMutation = useMutation({
+    mutationFn: startSession,
+    onSuccess: (data) => {
+      setActiveSession(data)
+      setSeconds(0)
+      toast.success("Study session started! Timer is active.")
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || "Failed to start study session.")
+    },
+  })
+
+  const completeMutation = useMutation({
+    mutationFn: () =>
+      completeSession(activeSession.id, {
+        difficultyRating: Number(difficulty),
+        overallRating: Number(rating),
+        notes,
+        status,
+      }),
+    onSuccess: () => {
+      toast.success("Study session saved successfully!")
+      setIsModalOpen(false)
+      setActiveSession(null)
+      setNotes("")
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] })
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || "Failed to save study session.")
+    },
+  })
+
+  // Timer Effect
+  useEffect(() => {
+    let interval: any = null
+    if (activeSession && activeSession.status === "IN_PROGRESS") {
+      interval = setInterval(() => {
+        setSeconds((prev) => prev + 1)
+      }, 1000)
+    } else {
+      clearInterval(interval)
+    }
+    return () => clearInterval(interval)
+  }, [activeSession])
+
+  const formatTime = (totalSecs: number) => {
+    const mins = Math.floor(totalSecs / 60)
+    const secs = totalSecs % 60
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
+  }
+
+  if (isLoading) {
+    return <div className="text-center py-12 text-slate-500">Loading dashboard...</div>
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Top Banner Grid */}
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {[
+          { title: "Current Streak", value: `${dashboard?.currentStreak || 0} Days`, icon: Flame, color: "text-amber-500" },
+          { title: "Classes Completed", value: dashboard?.completedClassesCount || "0", icon: CheckCircle, color: "text-emerald-500" },
+          { title: "Hours Studied", value: `${dashboard?.totalStudyHours || 0}h`, icon: Clock, color: "text-indigo-500" },
+          { title: "Completion Rate", value: `${Math.round(dashboard?.completionPercentage || 0)}%`, icon: BookOpen, color: "text-violet-500" },
+        ].map((item, i) => (
+          <Card key={i}>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-sm font-medium text-slate-500 dark:text-slate-400">{item.title}</span>
+                  <p className="text-3xl font-bold mt-2 text-slate-900 dark:text-slate-50">{item.value}</p>
+                </div>
+                <item.icon className={`h-8 w-8 ${item.color}`} />
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Active Session Tracker */}
+      {activeSession && (
+        <Card className="border-indigo-200 bg-indigo-50/20 dark:border-indigo-900/50 dark:bg-slate-950">
+          <CardHeader>
+            <CardTitle className="text-indigo-600 dark:text-indigo-400 flex items-center gap-2">
+              <Clock className="h-5 w-5 animate-pulse" /> Active Study Session
+            </CardTitle>
+            <CardDescription>Keep studying! Your elapsed time is being tracked.</CardDescription>
+          </CardHeader>
+          <CardContent className="flex justify-between items-center">
+            <span className="text-4xl font-mono font-bold tracking-widest">{formatTime(seconds)}</span>
+            <Button onClick={() => setIsModalOpen(true)} className="bg-indigo-600 hover:bg-indigo-500 text-white">
+              End Session & Track
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Main Panel Grid */}
+      <div className="grid gap-6 md:grid-cols-3">
+        {/* Today's Tasks */}
+        <Card className="md:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-slate-500" /> Today's Scheduled Classes
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {dashboard?.todayTasks?.length === 0 ? (
+              <p className="text-sm text-slate-500 py-6 text-center">No tasks scheduled for today. Enjoy your day off!</p>
+            ) : (
+              dashboard?.todayTasks?.map((task: any) => (
+                <div key={task.id} className="flex justify-between items-center border-b pb-3 last:border-0 last:pb-0">
+                  <div>
+                    <span className="text-sm font-semibold">{task.topic}</span>
+                    <div className="flex gap-2 text-xs text-slate-500 mt-1">
+                      <span>Class {task.classNo}</span>
+                      <span>•</span>
+                      <span>{task.durationDisplay}</span>
+                    </div>
+                  </div>
+                  {task.status !== "COMPLETED" && !activeSession ? (
+                    <Button size="sm" onClick={() => startMutation.mutate(task.id)} className="bg-indigo-600 text-white hover:bg-indigo-500">
+                      <Play className="h-3.5 w-3.5 mr-1" /> Start Study
+                    </Button>
+                  ) : (
+                    <span className="text-xs bg-slate-100 text-slate-700 px-2.5 py-1 rounded-full font-medium dark:bg-slate-900 dark:text-slate-400">
+                      {task.status}
+                    </span>
+                  )}
+                </div>
+              ))
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Badges / Streaks Panel */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Award className="h-5 w-5 text-slate-500" /> Recent Achievements
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {dashboard?.recentBadges?.length === 0 ? (
+              <p className="text-sm text-slate-500 py-6 text-center">No achievements unlocked yet. Finish classes to earn badges!</p>
+            ) : (
+              dashboard?.recentBadges?.map((badge: any, idx: number) => (
+                <div key={idx} className="flex items-start gap-3 border-b pb-3 last:border-0 last:pb-0">
+                  <div className="text-2xl bg-amber-50 dark:bg-slate-900 p-2 rounded-lg">{badge.icon || "🏆"}</div>
+                  <div>
+                    <span className="text-sm font-semibold block">{badge.displayName}</span>
+                    <span className="text-xs text-slate-500">{badge.description}</span>
+                  </div>
+                </div>
+              ))
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Completion Modal */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Complete Study Session</DialogTitle>
+            <DialogDescription>
+              Select status, log notes, and rate the class performance.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="status">Study Status *</Label>
+              <Select value={status} onValueChange={setStatus}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="COMPLETED">Completed</SelectItem>
+                  <SelectItem value="SKIPPED">Skipped</SelectItem>
+                  <SelectItem value="MISSED">Missed</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="difficulty">Difficulty (1-5)</Label>
+                <Select value={difficulty} onValueChange={setDifficulty}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[1, 2, 3, 4, 5].map((val) => (
+                      <SelectItem key={val} value={String(val)}>{val}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="rating">Overall Rating (1-5)</Label>
+                <Select value={rating} onValueChange={setRating}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[1, 2, 3, 4, 5].map((val) => (
+                      <SelectItem key={val} value={String(val)}>{val}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="notes">Study Notes</Label>
+              <Input id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Formulas, key items covered..." />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsModalOpen(false)}>Cancel</Button>
+            <Button onClick={() => completeMutation.mutate()} disabled={completeMutation.isPending}>
+              Save Session
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  )
+}
