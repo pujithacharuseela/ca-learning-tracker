@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 
 export const UploadPage: React.FC = () => {
   const queryClient = useQueryClient()
@@ -161,31 +162,31 @@ export const UploadPage: React.FC = () => {
 
   return (
     <div className="space-y-6 relative">
-      {(previewMutation.isPending || importMutation.isPending) && (
-        <div className="fixed inset-0 bg-[#020617]/80 dark:bg-[#020617]/80 backdrop-blur-md z-[9999] flex items-center justify-center p-6">
-          <div className="bg-[#0b1329] dark:bg-[#0b1329] border border-slate-800/80 rounded-2xl p-8 max-w-md w-full shadow-2xl text-center space-y-6">
-            <div className="h-10 w-10 animate-spin rounded-full border-4 border-violet-600 border-t-transparent mx-auto"></div>
-            <div className="space-y-2">
-              <h3 className="text-lg font-bold text-slate-100 dark:text-slate-100">
-                {previewMutation.isPending ? "Parsing spreadsheet..." : "Importing classes..."}
-              </h3>
-              <p className="text-sm text-slate-400">Please wait, do not close or refresh this page.</p>
+      <Dialog open={previewMutation.isPending || importMutation.isPending}>
+        <DialogContent className="sm:max-w-[420px] bg-[#0b1329] border border-slate-800 text-slate-100 p-8 text-center flex flex-col items-center justify-center gap-6">
+          <DialogHeader className="flex flex-col items-center gap-2">
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-violet-600 border-t-transparent mb-2"></div>
+            <DialogTitle className="text-lg font-bold text-slate-100">
+              {previewMutation.isPending ? "Parsing spreadsheet..." : "Importing classes..."}
+            </DialogTitle>
+            <DialogDescription className="text-slate-400">
+              Please wait, do not close or refresh this page.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 w-full">
+            <div className="flex justify-between text-xs font-semibold text-indigo-400">
+              <span>Progress</span>
+              <span>{uploadProgress}%</span>
             </div>
-            <div className="space-y-2">
-              <div className="flex justify-between text-xs font-semibold text-indigo-400">
-                <span>Progress</span>
-                <span>{uploadProgress}%</span>
-              </div>
-              <div className="h-2.5 w-full bg-slate-950 rounded-full overflow-hidden border border-slate-800">
-                <div
-                  className="h-full bg-gradient-to-r from-violet-600 to-indigo-500 rounded-full transition-all duration-300 shadow-[0_0_8px_rgba(99,102,241,0.5)]"
-                  style={{ width: `${uploadProgress}%` }}
-                />
-              </div>
+            <div className="h-2.5 w-full bg-slate-950 rounded-full overflow-hidden border border-slate-800">
+              <div
+                className="h-full bg-gradient-to-r from-violet-600 to-indigo-500 rounded-full transition-all duration-300 shadow-[0_0_8px_rgba(99,102,241,0.5)]"
+                style={{ width: `${uploadProgress}%` }}
+              />
             </div>
           </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
 
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-3xl font-extrabold tracking-tight text-slate-100">Upload Plan</h1>
@@ -340,18 +341,19 @@ export const UploadPage: React.FC = () => {
                 </div>
 
                 {/* Rows Preview Table */}
-                <div className="border rounded-lg overflow-x-auto">
-                  <table className="w-full text-sm text-left">
-                    <thead className="bg-slate-50 dark:bg-slate-900 text-xs font-semibold text-slate-500 uppercase">
-                      <tr>
-                        <th className="px-4 py-3">Row</th>
-                        <th className="px-4 py-3">Class No</th>
-                        <th className="px-4 py-3">Topic</th>
-                        <th className="px-4 py-3">Duration</th>
-                        <th className="px-4 py-3">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y">
+                <div className="border border-slate-800/80 rounded-xl overflow-hidden">
+                  <div className="max-h-[320px] overflow-y-auto">
+                    <table className="w-full text-sm text-left">
+                      <thead className="bg-[#070d1e] text-xs font-semibold text-slate-400 uppercase border-b border-slate-800 sticky top-0 z-10">
+                        <tr>
+                          <th className="px-4 py-3">Row</th>
+                          <th className="px-4 py-3">Class No</th>
+                          <th className="px-4 py-3">Topic</th>
+                          <th className="px-4 py-3">Duration</th>
+                          <th className="px-4 py-3">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-800/60 bg-[#0b1329]/20">
                       {preview.rows.map((row: any) => (
                         <tr key={row.rowIndex} className="hover:bg-slate-50 dark:hover:bg-slate-900/50">
                           <td className="px-4 py-3 font-medium">{row.rowIndex}</td>
@@ -375,6 +377,7 @@ export const UploadPage: React.FC = () => {
                   </table>
                 </div>
               </div>
+            </div>
             )}
           </CardContent>
         </Card>
