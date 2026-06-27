@@ -2,9 +2,7 @@ package com.learningtracker.service;
 
 import com.learningtracker.constant.enums.UploadStatus;
 import com.learningtracker.dto.response.ExcelPreviewResponse;
-import com.learningtracker.entity.LearningClass;
-import com.learningtracker.entity.UploadedFile;
-import com.learningtracker.entity.User;
+import com.learningtracker.entity.*;
 import com.learningtracker.exception.InvalidOperationException;
 import com.learningtracker.exception.ResourceNotFoundException;
 import com.learningtracker.repository.LearningClassRepository;
@@ -212,12 +210,15 @@ public class ExcelUploadService {
         for (LearningPlan plan : plans) {
             List<Schedule> schedules = scheduleRepository.findByPlanId(plan.getId());
             for (Schedule s : schedules) {
-                noteRepository.findAll().stream()
-                        .filter(n -> n.getSchedule() != null && n.getSchedule().getId().equals(s.getId()))
-                        .forEach(noteRepository::delete);
-                studySessionRepository.findAll().stream()
+                List<StudySession> sessions = studySessionRepository.findAll().stream()
                         .filter(ss -> ss.getSchedule() != null && ss.getSchedule().getId().equals(s.getId()))
-                        .forEach(studySessionRepository::delete);
+                        .toList();
+                for (StudySession ss : sessions) {
+                    noteRepository.findAll().stream()
+                            .filter(n -> n.getStudySession() != null && n.getStudySession().getId().equals(ss.getId()))
+                            .forEach(noteRepository::delete);
+                    studySessionRepository.delete(ss);
+                }
                 scheduleRepository.delete(s);
             }
             learningPlanRepository.delete(plan);
