@@ -69,10 +69,10 @@ export const UploadPage: React.FC = () => {
       })
     },
     onSuccess: () => {
-      toast.success("Import completed successfully!")
+      toast.success("Classes imported successfully! Go to Planner to view them.")
       queryClient.invalidateQueries({ queryKey: ["uploadHistory"] })
-      queryClient.invalidateQueries({ queryKey: ["classes"] })
-      queryClient.invalidateQueries({ queryKey: ["dashboard"] })
+      queryClient.invalidateQueries({ queryKey: ["classes"], exact: false })
+      queryClient.invalidateQueries({ queryKey: ["dashboard"], exact: false })
       setFile(null)
       setPreview(null)
     },
@@ -88,10 +88,10 @@ export const UploadPage: React.FC = () => {
   const resetMutation = useMutation({
     mutationFn: resetUserData,
     onSuccess: () => {
-      toast.success("Workspace reset. All previous classes and plans cleared successfully.")
+      toast.success("Workspace cleared. Upload a new file to start fresh.")
       queryClient.invalidateQueries({ queryKey: ["uploadHistory"] })
-      queryClient.invalidateQueries({ queryKey: ["classes"] })
-      queryClient.invalidateQueries({ queryKey: ["dashboard"] })
+      queryClient.invalidateQueries({ queryKey: ["classes"], exact: false })
+      queryClient.invalidateQueries({ queryKey: ["dashboard"], exact: false })
       setFile(null)
       setPreview(null)
     },
