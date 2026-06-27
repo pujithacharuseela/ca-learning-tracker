@@ -36,7 +36,7 @@ public class EmailService {
         variables.put("firstName", user.getFirstName());
         variables.put("frontendUrl", frontendUrl);
 
-        sendHtmlEmail(user.getEmail(), "Welcome to Personal Learning Tracker!", "welcome", variables);
+        sendHtmlEmail(user.getEmail(), "Welcome to Personal Learning Tracker!", "mail/welcome", variables);
     }
 
     @Async
@@ -45,7 +45,7 @@ public class EmailService {
         variables.put("firstName", user.getFirstName());
         variables.put("otp", otp);
 
-        sendHtmlEmail(user.getEmail(), "Your OTP Verification Code", "otp", variables);
+        sendHtmlEmail(user.getEmail(), "Your OTP Verification Code", "mail/otp", variables);
     }
 
     private void sendHtmlEmail(String to, String subject, String templateName, Map<String, Object> variables) {
