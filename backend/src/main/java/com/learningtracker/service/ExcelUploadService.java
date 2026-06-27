@@ -101,12 +101,45 @@ public class ExcelUploadService {
     }
 
     @Transactional
-    public UploadedFile confirmImport(MultipartFile file, ExcelPreviewResponse preview) {
+    public UploadedFile confirmImport(MultipartFile file) {
         String email = SecurityUtils.getCurrentUserEmail();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
 
-        if (preview.getValidRowsCount() == 0) {
+        List<LearningClass> allParsed;
+        try (InputStream is = file.getInputStream()) {
+            allParsed = ExcelUtils.parseExcelFile(is, user);
+        } catch (Exception e) {
+            throw new InvalidOperationException("Failed to parse Excel file: " + e.getMessage());
+        }
+
+        List<LearningClass> toSave = new ArrayList<>();
+        int validRows = 0;
+        int invalidRows = 0;
+
+        for (LearningClass cl : allParsed) {
+            boolean valid = true;
+            if (cl.getClassNo() <= 0) {
+                valid = false;
+            } else if (learningClassRepository.existsByUserIdAndClassNo(user.getId(), cl.getClassNo())) {
+                valid = false;
+            }
+            if (cl.getTopic() == null || cl.getTopic().isBlank()) {
+                valid = false;
+            }
+            if (cl.getDurationMinutes() <= 0) {
+                valid = false;
+            }
+
+            if (valid) {
+                validRows++;
+                toSave.add(cl);
+            } else {
+                invalidRows++;
+            }
+        }
+
+        if (validRows == 0) {
             throw new InvalidOperationException("No valid rows to import.");
         }
 
@@ -114,27 +147,16 @@ public class ExcelUploadService {
         uploadedFile.setUser(user);
         uploadedFile.setFileName(file.getOriginalFilename());
         uploadedFile.setOriginalName(file.getOriginalFilename());
-        uploadedFile.setTotalRows(preview.getTotalRows());
-        uploadedFile.setValidRows(preview.getValidRowsCount());
-        uploadedFile.setInvalidRows(preview.getInvalidRowsCount());
+        uploadedFile.setTotalRows(allParsed.size());
+        uploadedFile.setValidRows(validRows);
+        uploadedFile.setInvalidRows(invalidRows);
         uploadedFile.setStatus(UploadStatus.COMPLETED);
         uploadedFile.setUploadedAt(LocalDateTime.now());
         uploadedFile = uploadedFileRepository.save(uploadedFile);
 
-        try (InputStream is = file.getInputStream()) {
-            List<LearningClass> classes = ExcelUtils.parseExcelFile(is, user);
-            
-            for (LearningClass cl : classes) {
-                // Confirm duplicate doesn't exist to prevent concurrent inserts
-                if (!learningClassRepository.existsByUserIdAndClassNo(user.getId(), cl.getClassNo())) {
-                    cl.setUploadedFile(uploadedFile);
-                    learningClassRepository.save(cl);
-                }
-            }
-        } catch (Exception e) {
-            uploadedFile.setStatus(UploadStatus.FAILED);
-            uploadedFileRepository.save(uploadedFile);
-            throw new InvalidOperationException("Error persisting imported classes: " + e.getMessage());
+        for (LearningClass cl : toSave) {
+            cl.setUploadedFile(uploadedFile);
+            learningClassRepository.save(cl);
         }
 
         return uploadedFile;

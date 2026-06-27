@@ -36,7 +36,7 @@ export const UploadPage: React.FC = () => {
   })
 
   const importMutation = useMutation({
-    mutationFn: () => confirmExcelImport(file!, preview),
+    mutationFn: () => confirmExcelImport(file!),
     onSuccess: () => {
       toast.success("Import completed successfully!")
       queryClient.invalidateQueries({ queryKey: ["uploadHistory"] })
@@ -44,13 +44,26 @@ export const UploadPage: React.FC = () => {
       setPreview(null)
     },
     onError: (err: any) => {
-      toast.error(err.response?.data?.message || "Import failed.")
+      const msg = err.response?.data?.message
+        || err.response?.data?.error
+        || err.message
+        || "Import failed."
+      toast.error(msg)
     },
   })
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0]
+      setFile(selectedFile)
+      previewMutation.mutate(selectedFile)
+    }
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const selectedFile = e.dataTransfer.files[0]
       setFile(selectedFile)
       previewMutation.mutate(selectedFile)
     }
@@ -66,31 +79,42 @@ export const UploadPage: React.FC = () => {
           <CardHeader>
             <CardTitle>Excel Upload</CardTitle>
             <CardDescription>
-              Upload `.xlsx` files. Must contain ClassNo, Day / Topic, Duration (Minutes) and Duration (Hours + Minutes) columns.
+              Upload `.xlsx` files. Must contain ClassNo, Day / Topic, Duration (Minutes) and
+              Duration (Hours + Minutes) columns.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6">
             {!preview ? (
-              <div className="border-2 border-dashed border-slate-800 hover:border-slate-700/80 rounded-2xl p-12 text-center bg-[#070d1e]/40 hover:bg-[#070d1e]/80 transition-all duration-300 cursor-pointer relative">
+              <div
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={handleDrop}
+                onClick={() => fileInputRef.current?.click()}
+                className="border rounded-2xl border-dashed border-slate-800/80 bg-[#0b1329]/30 p-12 text-center hover:bg-[#0b1329]/50 transition cursor-pointer relative"
+              >
                 <input
                   type="file"
-                  accept=".xlsx"
-                  className="absolute inset-0 opacity-0 cursor-pointer"
+                  ref={fileInputRef}
                   onChange={handleFileChange}
+                  accept=".xlsx"
+                  className="hidden"
                 />
-                <Upload className="mx-auto h-12 w-12 text-violet-400 animate-bounce" />
-                <h3 className="mt-4 text-lg font-bold text-slate-200">
+                <Upload className="h-10 w-10 text-slate-500 mx-auto mb-4" />
+                <p className="text-base font-medium text-slate-300">
                   Drag and drop your spreadsheet here
-                </h3>
-                <p className="mt-2 text-sm text-slate-400">or click to browse from files</p>
+                </p>
+                <p className="text-xs text-slate-500 mt-1">
+                  or click to browse from files
+                </p>
               </div>
             ) : (
-              <div className="space-y-6 animate-in fade-in zoom-in-95">
-                {/* Parsing Summary */}
+              <div className="space-y-6">
+                {/* Stats Summary */}
                 <div className="grid grid-cols-3 gap-4">
-                  <div className="bg-[#070d1e]/60 border border-slate-800 p-4 rounded-xl text-center">
+                  <div className="bg-slate-800/25 border border-slate-800 p-4 rounded-xl text-center">
                     <span className="text-xs uppercase tracking-wider font-semibold text-slate-400">Total Rows</span>
-                    <p className="text-2xl font-bold mt-1 text-slate-100">{preview.totalRows}</p>
+                    <p className="text-2xl font-bold mt-1 text-slate-200">
+                      {preview.totalRows}
+                    </p>
                   </div>
                   <div className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl text-center">
                     <span className="text-xs uppercase tracking-wider font-semibold text-emerald-400">Valid Rows</span>
@@ -107,21 +131,21 @@ export const UploadPage: React.FC = () => {
                 </div>
 
                 {/* Confirm Actions */}
-                <div className="flex justify-between items-center bg-slate-50 dark:bg-slate-900 p-4 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <FileSpreadsheet className="h-5 w-5 text-indigo-600" />
-                    <span className="text-sm font-semibold">{file?.name}</span>
+                <div className="flex flex-col sm:flex-row gap-4 justify-between items-stretch sm:items-center bg-[#070d1e]/50 border border-slate-800/80 p-4 rounded-xl">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <FileSpreadsheet className="h-5 w-5 text-indigo-400 shrink-0" />
+                    <span className="text-sm font-semibold text-slate-200 truncate">{file?.name}</span>
                   </div>
-                  <div className="flex gap-2">
-                    <Button variant="outline" onClick={() => { setFile(null); setPreview(null); }}>
+                  <div className="flex gap-3 shrink-0">
+                    <Button variant="outline" className="flex-1 sm:flex-initial" onClick={() => { setFile(null); setPreview(null); }}>
                       Cancel
                     </Button>
                     <Button
                       onClick={() => importMutation.mutate()}
                       disabled={preview.validRowsCount === 0 || importMutation.isPending}
-                      className="bg-indigo-600 hover:bg-indigo-500 text-white"
+                      className="flex-1 sm:flex-initial bg-indigo-600 hover:bg-indigo-500 text-white"
                     >
-                      Import Valid Rows
+                      {importMutation.isPending ? "Importing..." : "Import Valid Rows"}
                     </Button>
                   </div>
                 </div>

@@ -24,9 +24,8 @@ public class UploadController {
 
     @PostMapping("/import")
     public ResponseEntity<UploadedFile> confirmImport(
-            @RequestParam("file") MultipartFile file,
-            @RequestBody ExcelPreviewResponse preview) {
-        return ResponseEntity.ok(excelUploadService.confirmImport(file, preview));
+            @RequestParam("file") MultipartFile file) {
+        return ResponseEntity.ok(excelUploadService.confirmImport(file));
     }
 
     @GetMapping("/history")

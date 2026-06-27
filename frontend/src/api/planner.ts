@@ -18,11 +18,10 @@ export async function uploadExcelPreview(file: File): Promise<any> {
   return response.data;
 }
 
-export async function confirmExcelImport(file: File, preview: any): Promise<any> {
+export async function confirmExcelImport(file: File): Promise<any> {
   const formData = new FormData();
   formData.append('file', file);
-  const response = await apiClient.post('/uploads/import', preview, {
-    params: { file },
+  const response = await apiClient.post('/uploads/import', formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
