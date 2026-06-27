@@ -19,5 +19,8 @@ public interface StudySessionRepository extends JpaRepository<StudySession, UUID
     Integer sumActualDurationMinutesByUserId(@Param("userId") UUID userId);
 
     List<StudySession> findByUserIdAndCompletedAtBetween(UUID userId, LocalDateTime start, LocalDateTime end);
-    void deleteByUserId(UUID userId);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @Query("DELETE FROM StudySession s WHERE s.user.id = :userId")
+    void deleteByUserId(@Param("userId") UUID userId);
 }

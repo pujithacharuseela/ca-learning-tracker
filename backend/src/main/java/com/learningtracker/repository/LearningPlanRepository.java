@@ -30,5 +30,8 @@ public interface LearningPlanRepository extends JpaRepository<LearningPlan, UUID
      * @return list of matching learning plans
      */
     List<LearningPlan> findByUserIdAndStatus(UUID userId, PlanStatus status);
-    void deleteByUserId(UUID userId);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.data.jpa.repository.Query("DELETE FROM LearningPlan lp WHERE lp.user.id = :userId")
+    void deleteByUserId(@org.springframework.data.repository.query.Param("userId") UUID userId);
 }

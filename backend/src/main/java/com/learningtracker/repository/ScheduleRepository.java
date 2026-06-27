@@ -21,5 +21,8 @@ public interface ScheduleRepository extends JpaRepository<Schedule, UUID> {
 
     @Query("SELECT COUNT(s) FROM Schedule s WHERE s.user.id = :userId")
     long countByUserId(@Param("userId") UUID userId);
-    void deleteByUserId(UUID userId);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @Query("DELETE FROM Schedule s WHERE s.user.id = :userId")
+    void deleteByUserId(@Param("userId") UUID userId);
 }

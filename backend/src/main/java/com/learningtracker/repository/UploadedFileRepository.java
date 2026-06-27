@@ -20,5 +20,8 @@ public interface UploadedFileRepository extends JpaRepository<UploadedFile, UUID
      * @return list of uploaded files
      */
     List<UploadedFile> findByUserIdOrderByUploadedAtDesc(UUID userId);
-    void deleteByUserId(UUID userId);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.data.jpa.repository.Query("DELETE FROM UploadedFile uf WHERE uf.user.id = :userId")
+    void deleteByUserId(@org.springframework.data.repository.query.Param("userId") UUID userId);
 }

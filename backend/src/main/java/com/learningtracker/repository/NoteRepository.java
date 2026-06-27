@@ -20,5 +20,8 @@ public interface NoteRepository extends JpaRepository<Note, UUID> {
      * @return list of notes
      */
     List<Note> findByStudySessionId(UUID studySessionId);
-    void deleteByUserId(UUID userId);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.data.jpa.repository.Query("DELETE FROM Note n WHERE n.user.id = :userId")
+    void deleteByUserId(@org.springframework.data.repository.query.Param("userId") UUID userId);
 }

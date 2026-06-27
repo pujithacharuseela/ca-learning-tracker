@@ -16,5 +16,8 @@ public interface LearningClassRepository extends JpaRepository<LearningClass, UU
     Optional<LearningClass> findByUserIdAndClassNo(UUID userId, int classNo);
     boolean existsByUserIdAndClassNo(UUID userId, int classNo);
     long countByUserId(UUID userId);
-    void deleteByUserId(UUID userId);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.data.jpa.repository.Query("DELETE FROM LearningClass lc WHERE lc.user.id = :userId")
+    void deleteByUserId(@org.springframework.data.repository.query.Param("userId") UUID userId);
 }
