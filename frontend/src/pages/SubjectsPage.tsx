@@ -116,6 +116,15 @@ export const SubjectsPage: React.FC = () => {
     }
   }
 
+  if (isLoading) {
+    return (
+      <div className="flex h-[60vh] w-full flex-col items-center justify-center gap-3">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-violet-600 border-t-transparent"></div>
+        <p className="text-slate-500 font-medium text-sm">Loading subjects...</p>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -139,9 +148,7 @@ export const SubjectsPage: React.FC = () => {
         />
       </div>
 
-      {isLoading ? (
-        <p className="text-slate-500 text-center py-12">Loading subjects...</p>
-      ) : filteredSubjects.length === 0 ? (
+      {filteredSubjects.length === 0 ? (
         <Card className="border-dashed border-slate-800">
           <CardContent className="flex flex-col items-center justify-center py-16 gap-4">
             <BookOpen className="h-12 w-12 text-slate-700" />

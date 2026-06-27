@@ -41,6 +41,15 @@ export const AnalyticsPage: React.FC = () => {
     ? Object.entries(metrics.statusDistribution).map(([name, value]) => ({ name, value }))
     : []
 
+  if (isLoading) {
+    return (
+      <div className="flex h-[60vh] w-full flex-col items-center justify-center gap-3">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-violet-600 border-t-transparent"></div>
+        <p className="text-slate-500 font-medium text-sm">Calculating analytics...</p>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -59,10 +68,7 @@ export const AnalyticsPage: React.FC = () => {
         </div>
       </div>
 
-      {isLoading ? (
-        <div className="text-center py-12 text-slate-500">Calculating analytics...</div>
-      ) : (
-        <div className="space-y-6">
+      <div className="space-y-6">
           {/* Overview Grid */}
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             <Card className="hover:border-slate-700/80 transition-all duration-300">
@@ -169,7 +175,6 @@ export const AnalyticsPage: React.FC = () => {
             </Card>
           </div>
         </div>
-      )}
     </div>
   )
 }

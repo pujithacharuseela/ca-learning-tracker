@@ -122,6 +122,15 @@ export const CalendarPage: React.FC = () => {
   const completedCount = filteredSchedules.filter((s) => s.status === "COMPLETED").length
   const totalCount = filteredSchedules.length
 
+  if (isLoading) {
+    return (
+      <div className="flex h-[60vh] w-full flex-col items-center justify-center gap-3">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-violet-600 border-t-transparent"></div>
+        <p className="text-slate-500 font-medium text-sm">Loading calendar...</p>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}

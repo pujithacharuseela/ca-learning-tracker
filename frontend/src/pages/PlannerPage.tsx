@@ -38,7 +38,7 @@ export const PlannerPage: React.FC = () => {
   const [editSubjectId, setEditSubjectId] = useState("")
 
   // Fetch subjects first
-  const { data: subjects } = useQuery({
+  const { data: subjects, isLoading: isLoadingSubjects } = useQuery({
     queryKey: ["subjects"],
     queryFn: getSubjects,
   })
@@ -152,6 +152,15 @@ export const PlannerPage: React.FC = () => {
   const isAllPageSelected = classesData?.content
     ? classesData.content.every((c) => selectedClasses.includes(String(c.id)))
     : false
+
+  if (isLoading || isLoadingSubjects) {
+    return (
+      <div className="flex h-[60vh] w-full flex-col items-center justify-center gap-3">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-violet-600 border-t-transparent"></div>
+        <p className="text-slate-500 font-medium text-sm">Loading planner...</p>
+      </div>
+    )
+  }
 
   // If there are no subjects, display prompt to create subjects first
   if (!isLoading && (!subjects || subjects.length === 0)) {
