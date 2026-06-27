@@ -56,6 +56,8 @@ export const DashboardPage: React.FC = () => {
       setActiveSession(null)
       setNotes("")
       queryClient.invalidateQueries({ queryKey: ["dashboard"] })
+      queryClient.invalidateQueries({ queryKey: ["analytics"], exact: false })
+      queryClient.invalidateQueries({ queryKey: ["allSchedules"] })
     },
     onError: (err: any) => {
       toast.error(err.response?.data?.message || "Failed to save study session.")

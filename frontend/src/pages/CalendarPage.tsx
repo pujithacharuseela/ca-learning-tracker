@@ -39,17 +39,25 @@ export const CalendarPage: React.FC = () => {
       // Snapshot the previous value
       const previousSchedules = queryClient.getQueryData<any[]>(["allSchedules"])
 
+      let newStatus = "COMPLETED"
       // Optimistically update to the new value
       if (previousSchedules) {
+        const target = previousSchedules.find((s) => s.id === scheduleId)
+        if (target) {
+          newStatus = target.status === "COMPLETED" ? "NOT_STARTED" : "COMPLETED"
+        }
         queryClient.setQueryData(
           ["allSchedules"],
           previousSchedules.map((s) =>
             s.id === scheduleId
-              ? { ...s, status: s.status === "COMPLETED" ? "PLANNED" : "COMPLETED" }
+              ? { ...s, status: newStatus }
               : s
           )
         )
       }
+
+      // Show toast instantly
+      toast.success(newStatus === "COMPLETED" ? "✅ Marked as completed!" : "↩ Marked as not started.")
 
       // Return context for potential rollbacks
       return { previousSchedules }
@@ -60,12 +68,13 @@ export const CalendarPage: React.FC = () => {
       }
       toast.error("Failed to update status.")
     },
-    onSuccess: (updated) => {
-      toast.success(updated.status === "COMPLETED" ? "✅ Marked as completed!" : "↩ Marked as not started.")
+    onSuccess: () => {
+      // Toast shown onMutate for instant feedback
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["allSchedules"] })
       queryClient.invalidateQueries({ queryKey: ["dashboard"], exact: false })
+      queryClient.invalidateQueries({ queryKey: ["analytics"], exact: false })
     },
   })
 
@@ -137,7 +146,9 @@ export const CalendarPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight text-slate-100">Calendar</h1>
-          <p className="text-slate-400 text-sm mt-1">All your study schedules in one place</p>
+          <p className="text-slate-400 text-sm mt-1">
+            All your study schedules in one place • <span className="text-violet-400 font-semibold">Tip: Click any class to toggle complete/incomplete</span>
+          </p>
         </div>
         {/* Month + Year Pickers */}
         <div className="flex items-center gap-2 flex-wrap">
@@ -354,11 +365,12 @@ export const CalendarPage: React.FC = () => {
               <div
                 key={task.id}
                 onClick={() => completeMutation.mutate(task.id)}
-                className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all duration-150 ${
+                className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all duration-150 group/item ${
                   task.status === "COMPLETED"
-                    ? "bg-emerald-500/10 border-emerald-500/20 text-slate-350"
-                    : "bg-slate-900/40 border-slate-800 hover:bg-[#070d1e]"
+                    ? "bg-emerald-500/10 border-emerald-500/20 text-slate-350 hover:bg-emerald-500/15"
+                    : "bg-slate-900/40 border-slate-800 hover:bg-[#070d1e] hover:border-violet-500/40"
                 }`}
+                title="Click to toggle completion status"
               >
                 <div className="flex flex-col gap-0.5 min-w-0 pr-2">
                   <span className="text-[10px] text-slate-500 font-semibold">{task.planName}</span>
@@ -367,9 +379,14 @@ export const CalendarPage: React.FC = () => {
                 </div>
                 <div className="shrink-0">
                   {task.status === "COMPLETED" ? (
-                    <CheckCircle2 className="h-5 w-5 text-emerald-400" />
+                    <div className="h-5 w-5 rounded-full border border-emerald-500 bg-emerald-500/10 flex items-center justify-center transition-all group-hover/item:border-rose-500 group-hover/item:bg-rose-500/10">
+                      <CheckCircle2 className="h-4 w-4 text-emerald-400 group-hover/item:hidden" />
+                      <span className="text-[10px] text-rose-500 font-bold hidden group-hover/item:inline">↩</span>
+                    </div>
                   ) : (
-                    <div className="h-5 w-5 rounded-full border border-slate-700" />
+                    <div className="h-5 w-5 rounded-full border border-slate-700 group-hover/item:border-violet-500 group-hover/item:bg-violet-500/10 flex items-center justify-center transition-all">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-violet-400 opacity-0 group-hover/item:opacity-100 transition-opacity" />
+                    </div>
                   )}
                 </div>
               </div>
