@@ -22,6 +22,6 @@ public interface NoteRepository extends JpaRepository<Note, UUID> {
     List<Note> findByStudySessionId(UUID studySessionId);
 
     @org.springframework.data.jpa.repository.Modifying
-    @org.springframework.data.jpa.repository.Query("DELETE FROM Note n WHERE n.user.id = :userId")
+    @org.springframework.data.jpa.repository.Query("DELETE FROM Note n WHERE n.studySession.id IN (SELECT ss.id FROM StudySession ss WHERE ss.user.id = :userId)")
     void deleteByUserId(@org.springframework.data.repository.query.Param("userId") UUID userId);
 }
