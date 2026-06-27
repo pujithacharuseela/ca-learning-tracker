@@ -11,9 +11,7 @@ export async function uploadExcelPreview(file: File): Promise<any> {
   const formData = new FormData();
   formData.append('file', file);
   const response = await apiClient.post('/uploads/preview', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
+    headers: { 'Content-Type': 'multipart/form-data' },
   });
   return response.data;
 }
@@ -22,9 +20,7 @@ export async function confirmExcelImport(file: File): Promise<any> {
   const formData = new FormData();
   formData.append('file', file);
   const response = await apiClient.post('/uploads/import', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
+    headers: { 'Content-Type': 'multipart/form-data' },
   });
   return response.data;
 }
@@ -49,6 +45,11 @@ export async function getClasses(
   return response.data;
 }
 
+export async function getPlannedClassIds(): Promise<string[]> {
+  const response = await apiClient.get<string[]>('/planner/classes/planned-ids');
+  return response.data;
+}
+
 export async function createPlan(data: PlanAssignmentRequest): Promise<PlanResponse> {
   const response = await apiClient.post<PlanResponse>('/planner/plans', data);
   return response.data;
@@ -59,8 +60,22 @@ export async function getPlans(): Promise<PlanResponse[]> {
   return response.data;
 }
 
+export async function updatePlan(planId: string, name: string, description?: string): Promise<PlanResponse> {
+  const response = await apiClient.put<PlanResponse>(`/planner/plans/${planId}`, { name, description });
+  return response.data;
+}
+
+export async function deletePlan(planId: string): Promise<void> {
+  await apiClient.delete(`/planner/plans/${planId}`);
+}
+
 export async function getPlanSchedules(planId: string): Promise<ScheduleResponse[]> {
   const response = await apiClient.get<ScheduleResponse[]>(`/planner/plans/${planId}/schedules`);
+  return response.data;
+}
+
+export async function completeSchedule(scheduleId: string): Promise<ScheduleResponse> {
+  const response = await apiClient.patch<ScheduleResponse>(`/planner/schedules/${scheduleId}/complete`);
   return response.data;
 }
 

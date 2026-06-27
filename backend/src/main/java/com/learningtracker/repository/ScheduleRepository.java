@@ -25,4 +25,12 @@ public interface ScheduleRepository extends JpaRepository<Schedule, UUID> {
     @org.springframework.data.jpa.repository.Modifying
     @Query("DELETE FROM Schedule s WHERE s.user.id = :userId")
     void deleteByUserId(@Param("userId") UUID userId);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @Query("DELETE FROM Schedule s WHERE s.plan.id = :planId")
+    void deleteByPlanId(@Param("planId") UUID planId);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @Query("UPDATE Schedule s SET s.status = :status WHERE s.id = :scheduleId")
+    void updateStatusById(@Param("scheduleId") UUID scheduleId, @Param("status") com.learningtracker.constant.enums.StudyStatus status);
 }
