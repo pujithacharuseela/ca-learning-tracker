@@ -48,6 +48,39 @@ public class EmailService {
         sendHtmlEmail(user.getEmail(), "Your OTP Verification Code", "mail/otp", variables);
     }
 
+    @Async
+    public void sendPlanScheduledEmail(User user, String planName, String startDate, String endDate, String subjectName) {
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("firstName", user.getFirstName());
+        variables.put("planName", planName);
+        variables.put("startDate", startDate);
+        variables.put("endDate", endDate);
+        variables.put("subjectName", subjectName != null ? subjectName : "General Study");
+
+        sendHtmlEmail(user.getEmail(), "Study Plan Scheduled Successfully!", "mail/plan_scheduled", variables);
+    }
+
+    @Async
+    public void sendDeadlineReminderEmail(User user, String topic, String timeLeft, String duration) {
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("firstName", user.getFirstName());
+        variables.put("topic", topic);
+        variables.put("timeLeft", timeLeft);
+        variables.put("duration", duration);
+
+        sendHtmlEmail(user.getEmail(), "Study Session Reminder: " + topic, "mail/deadline_reminder", variables);
+    }
+
+    @Async
+    public void sendStreakAlertEmail(User user, String alertType) {
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("firstName", user.getFirstName());
+        variables.put("alertType", alertType);
+
+        String title = "WARNING".equals(alertType) ? "Streak Warning: Keep your streak alive!" : "Streak Missed: Let's start fresh today!";
+        sendHtmlEmail(user.getEmail(), title, "mail/streak_alert", variables);
+    }
+
     private void sendHtmlEmail(String to, String subject, String templateName, Map<String, Object> variables) {
         try {
             MimeMessage mimeMessage = mailSender.createMimeMessage();

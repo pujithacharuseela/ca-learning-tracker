@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Streak Alert Notification</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #F8FAFC;
+            color: #0F172A;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background: #FFFFFF;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+            border: 1px solid #E2E8F0;
+        }
+        .header {
+            background: linear-gradient(135deg, #1E1B4B 0%, #312E81 100%);
+            color: #FFFFFF;
+            padding: 32px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 26px;
+            font-weight: 700;
+        }
+        .content {
+            padding: 40px 32px;
+            line-height: 1.6;
+        }
+        .content p {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 16px;
+            color: #334155;
+        }
+        .streak-box {
+            background: #EEF2F6;
+            border-left: 4px solid #312E81;
+            padding: 20px;
+            border-radius: 4px;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        .streak-title {
+            font-size: 20px;
+            font-weight: 800;
+            color: #1E1B4B;
+            margin: 0 0 8px 0;
+        }
+        .footer {
+            background-color: #F1F5F9;
+            padding: 24px;
+            text-align: center;
+            font-size: 14px;
+            color: #64748B;
+            border-top: 1px solid #E2E8F0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 th:text="${alertType == 'MISSED' ? 'Streak Missed' : 'Streak Warning'}">Study Streak Update</h1>
+        </div>
+        <div class="content">
+            <p>Hi <span th:text="${firstName}">User</span>,</p>
+            
+            <div th:if="${alertType == 'WARNING'}">
+                <p>You have pending study sessions scheduled for today! Complete them before midnight to keep your active streak alive.</p>
+                <div class="streak-box">
+                    <p class="streak-title">🔥 Keep the Fire Burning!</p>
+                    <p style="margin: 0; font-size: 14px; color: #475569;">Complete today's schedules to maintain your streak.</p>
+                </div>
+            </div>
+
+            <div th:if="${alertType == 'MISSED'}">
+                <p>Oh no! You missed completing study sessions yesterday, and your active streak has reset to 0.</p>
+                <div class="streak-box">
+                    <p class="streak-title">💔 Streak Reset</p>
+                    <p style="margin: 0; font-size: 14px; color: #475569;">But don't give up! Complete a session today to start a fresh streak.</p>
+                </div>
+            </div>
+            
+            <p>We are rooting for you. Consistent daily habits are the key to mastering your goals.</p>
+        </div>
+        <div class="footer">
+            &copy; 2026 Personal Learning Tracker. All rights reserved.
+        </div>
+    </div>
+</body>
+</html>

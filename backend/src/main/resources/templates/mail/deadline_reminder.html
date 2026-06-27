@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pending Study Reminder</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #F8FAFC;
+            color: #0F172A;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background: #FFFFFF;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+            border: 1px solid #E2E8F0;
+        }
+        .header {
+            background: linear-gradient(135deg, #EF4444 0%, #F97316 100%);
+            color: #FFFFFF;
+            padding: 32px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 26px;
+            font-weight: 700;
+        }
+        .content {
+            padding: 40px 32px;
+            line-height: 1.6;
+        }
+        .content p {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 16px;
+            color: #334155;
+        }
+        .task-box {
+            background: #FFF5F5;
+            border-left: 4px solid #EF4444;
+            padding: 20px;
+            border-radius: 4px;
+            margin-bottom: 24px;
+        }
+        .task-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #991B1B;
+            margin: 0 0 8px 0;
+        }
+        .task-meta {
+            font-size: 14px;
+            color: #7F1D1D;
+            margin: 0;
+        }
+        .footer {
+            background-color: #F1F5F9;
+            padding: 24px;
+            text-align: center;
+            font-size: 14px;
+            color: #64748B;
+            border-top: 1px solid #E2E8F0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Study Session Reminder</h1>
+        </div>
+        <div class="content">
+            <p>Hi <span th:text="${firstName}">User</span>,</p>
+            <p>This is a quick reminder that you have a pending study task due shortly:</p>
+            
+            <div class="task-box">
+                <p class="task-title" th:text="${topic}">FT Day-1 Basic</p>
+                <p class="task-meta">
+                    <strong>Due In:</strong> <span th:text="${timeLeft}">1 hour</span><br>
+                    <strong>Duration:</strong> <span th:text="${duration}">3 hours 59 minutes</span>
+                </p>
+            </div>
+            
+            <p>Complete it and check it off on your personal planner board to keep your streak alive.</p>
+        </div>
+        <div class="footer">
+            &copy; 2026 Personal Learning Tracker. All rights reserved.
+        </div>
+    </div>
+</body>
+</html>

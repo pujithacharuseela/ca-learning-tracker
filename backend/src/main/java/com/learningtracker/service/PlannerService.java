@@ -36,6 +36,7 @@ public class PlannerService {
     private final UserRepository userRepository;
     private final SubjectRepository subjectRepository;
     private final StudySessionRepository studySessionRepository;
+    private final EmailService emailService;
 
     @Transactional
     public PlanResponse createPlan(PlanAssignmentRequest request) {
@@ -67,6 +68,18 @@ public class PlannerService {
         plan = learningPlanRepository.save(plan);
 
         distributeClasses(user, plan, classIds, request.getStartDate(), request.getEndDate());
+
+        try {
+            emailService.sendPlanScheduledEmail(
+                user,
+                plan.getName(),
+                plan.getStartDate().toString(),
+                plan.getEndDate().toString(),
+                plan.getSubject() != null ? plan.getSubject().getName() : null
+            );
+        } catch (Exception e) {
+            // Log warning but don't fail plan creation if email fails
+        }
 
         return mapToPlanResponse(plan);
     }
