@@ -1,14 +1,13 @@
 import React, { useMemo, useState } from "react"
 import { getPlans, getAllSchedules, completeSchedule, getSubjects } from "@/api/planner"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { format, startOfMonth, endOfMonth, eachDayOfInterval } from "date-fns"
+import { format, endOfMonth, eachDayOfInterval } from "date-fns"
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, CheckCircle2, Clock, Filter } from "lucide-react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
 
 const MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"]
 const CURRENT_YEAR = new Date().getFullYear()
