@@ -64,7 +64,7 @@ public class AuthService {
         user.setFirstName(request.getFirstName());
         user.setLastName(request.getLastName());
         user.setRole("USER");
-        user.setEmailVerified(false);
+        user.setEmailVerified(true);
 
         User savedUser = userRepository.save(user);
 
@@ -79,22 +79,6 @@ public class AuthService {
         settings.setWeeklySummary(true);
         settings.setAchievementAlerts(true);
         userSettingsRepository.save(settings);
-
-        // Generate OTP
-        String otp = generateOtpCode();
-        OtpToken otpToken = new OtpToken();
-        otpToken.setUser(savedUser);
-        otpToken.setOtpCode(otp);
-        otpToken.setPurpose(OtpPurpose.EMAIL_VERIFICATION);
-        otpToken.setExpiresAt(LocalDateTime.now().plusMinutes(AppConstants.OTP_EXPIRY_MINUTES));
-        otpToken.setUsed(false);
-        otpToken.setCreatedAt(LocalDateTime.now());
-        otpToken.setUpdatedAt(LocalDateTime.now());
-        otpTokenRepository.save(otpToken);
-
-        // Send Emails asynchronously
-        emailService.sendWelcomeEmail(savedUser);
-        emailService.sendOtpEmail(savedUser, otp);
 
         // Map to userDetails to generate initial tokens
         UserDetails userDetails = userDetailsService.loadUserByUsername(savedUser.getEmail());

@@ -32,8 +32,8 @@ export const RegisterPage: React.FC = () => {
   const onSubmit = async (values: RegisterFormValues) => {
     try {
       await register(values)
-      toast.success("Successfully registered! Please verify OTP.")
-      navigate("/verify-otp", { state: { email: values.email } })
+      toast.success("Successfully registered! Welcome.")
+      navigate("/")
     } catch (error: any) {
       const serverError = error.response?.data?.message
       const validationErrors = error.response?.data?.errors
