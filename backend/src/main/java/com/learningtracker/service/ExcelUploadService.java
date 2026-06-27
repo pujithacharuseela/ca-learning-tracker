@@ -40,6 +40,7 @@ public class ExcelUploadService {
     private final ScheduleRepository scheduleRepository;
     private final NoteRepository noteRepository;
     private final StudySessionRepository studySessionRepository;
+    private final com.learningtracker.repository.SubjectRepository subjectRepository;
 
     public ExcelPreviewResponse previewExcelFile(MultipartFile file) {
         String email = SecurityUtils.getCurrentUserEmail();
@@ -109,10 +110,13 @@ public class ExcelUploadService {
     }
 
     @Transactional
-    public UploadedFile confirmImport(MultipartFile file) {
+    public UploadedFile confirmImport(MultipartFile file, UUID subjectId) {
         String email = SecurityUtils.getCurrentUserEmail();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
+
+        com.learningtracker.entity.Subject subject = subjectRepository.findById(subjectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Subject", "id", subjectId));
 
         List<LearningClass> allParsed;
         try (InputStream is = file.getInputStream()) {
@@ -164,6 +168,7 @@ public class ExcelUploadService {
 
         for (LearningClass cl : toSave) {
             cl.setUploadedFile(uploadedFile);
+            cl.setSubject(subject);
             learningClassRepository.save(cl);
         }
 
@@ -190,5 +195,51 @@ public class ExcelUploadService {
         learningPlanRepository.deleteByUserId(userId);
         learningClassRepository.deleteByUserId(userId);
         uploadedFileRepository.deleteByUserId(userId);
+    }
+
+    @Transactional
+    public void clearUserDataBySubject(UUID subjectId) {
+        String email = SecurityUtils.getCurrentUserEmail();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
+        UUID userId = user.getId();
+
+        // 1. Get and delete all plans matching subjectId, plus child entities (notes, sessions, schedules)
+        List<LearningPlan> plans = learningPlanRepository.findByUserId(userId).stream()
+                .filter(p -> p.getSubject() != null && p.getSubject().getId().equals(subjectId))
+                .toList();
+
+        for (LearningPlan plan : plans) {
+            List<Schedule> schedules = scheduleRepository.findByPlanId(plan.getId());
+            for (Schedule s : schedules) {
+                noteRepository.findAll().stream()
+                        .filter(n -> n.getSchedule() != null && n.getSchedule().getId().equals(s.getId()))
+                        .forEach(noteRepository::delete);
+                studySessionRepository.findAll().stream()
+                        .filter(ss -> ss.getSchedule() != null && ss.getSchedule().getId().equals(s.getId()))
+                        .forEach(studySessionRepository::delete);
+                scheduleRepository.delete(s);
+            }
+            learningPlanRepository.delete(plan);
+        }
+
+        // 2. Delete classes of this subject
+        List<LearningClass> classes = learningClassRepository.findAll().stream()
+                .filter(lc -> lc.getUser().getId().equals(userId) && lc.getSubject() != null && lc.getSubject().getId().equals(subjectId))
+                .toList();
+
+        for (LearningClass lc : classes) {
+            learningClassRepository.delete(lc);
+        }
+
+        // 3. Clean up empty UploadedFiles
+        uploadedFileRepository.findByUserIdOrderByUploadedAtDesc(userId).stream()
+                .filter(uf -> {
+                    long remainingClasses = learningClassRepository.findAll().stream()
+                            .filter(lc -> lc.getUploadedFile() != null && lc.getUploadedFile().getId().equals(uf.getId()))
+                            .count();
+                    return remainingClasses == 0;
+                })
+                .forEach(uploadedFileRepository::delete);
     }
 }

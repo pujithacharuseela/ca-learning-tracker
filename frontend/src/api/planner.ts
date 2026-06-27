@@ -17,10 +17,10 @@ export async function uploadExcelPreview(file: File): Promise<any> {
   return response.data;
 }
 
-export async function confirmExcelImport(file: File): Promise<any> {
+export async function confirmExcelImport(file: File, subjectId: string): Promise<any> {
   const formData = new FormData();
   formData.append('file', file);
-  const response = await apiClient.post('/uploads/import', formData, {
+  const response = await apiClient.post(`/uploads/import?subjectId=${subjectId}`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
   return response.data;
@@ -31,8 +31,9 @@ export async function getUploadHistory(): Promise<any[]> {
   return response.data;
 }
 
-export async function resetUserData(): Promise<void> {
-  await apiClient.delete('/uploads/reset');
+export async function resetUserData(subjectId?: string): Promise<void> {
+  const url = subjectId ? `/uploads/reset?subjectId=${subjectId}` : '/uploads/reset';
+  await apiClient.delete(url);
 }
 
 // ─── Subjects ────────────────────────────────────────────

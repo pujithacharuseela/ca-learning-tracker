@@ -69,10 +69,9 @@ export const UploadPage: React.FC = () => {
   })
 
   const importMutation = useMutation({
-    // We send subjectId parameter if selected so the backend maps classes correctly to that subject
     mutationFn: () => {
       const interval = startProgressSimulation()
-      return confirmExcelImport(file!).finally(() => {
+      return confirmExcelImport(file!, selectedSubjectId).finally(() => {
         clearInterval(interval)
         setUploadProgress(100)
       })
@@ -97,7 +96,7 @@ export const UploadPage: React.FC = () => {
   })
 
   const resetMutation = useMutation({
-    mutationFn: resetUserData,
+    mutationFn: () => resetUserData(),
     onSuccess: () => {
       toast.success("Workspace cleared. Upload a new file to start fresh.")
       queryClient.invalidateQueries({ queryKey: ["uploadHistory"] })
@@ -115,7 +114,31 @@ export const UploadPage: React.FC = () => {
     },
   })
 
+  const resetSubjectMutation = useMutation({
+    mutationFn: (subjectId: string) => resetUserData(subjectId),
+    onSuccess: () => {
+      toast.success("Subject classes and plans cleared successfully.")
+      queryClient.invalidateQueries({ queryKey: ["uploadHistory"] })
+      queryClient.invalidateQueries({ queryKey: ["classes"], exact: false })
+      queryClient.invalidateQueries({ queryKey: ["dashboard"], exact: false })
+      setFile(null)
+      setPreview(null)
+    },
+    onError: (err: any) => {
+      const msg = err.response?.data?.message
+        || err.response?.data?.error
+        || err.message
+        || "Failed to clear subject data."
+      toast.error(msg)
+    },
+  })
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!selectedSubjectId) {
+      toast.error("Please select a subject mapping before uploading.")
+      e.target.value = ""
+      return
+    }
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0]
       setFile(selectedFile)
@@ -125,6 +148,10 @@ export const UploadPage: React.FC = () => {
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault()
+    if (!selectedSubjectId) {
+      toast.error("Please select a subject mapping before uploading.")
+      return
+    }
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const selectedFile = e.dataTransfer.files[0]
       setFile(selectedFile)
@@ -192,7 +219,23 @@ export const UploadPage: React.FC = () => {
               <div className="space-y-4">
                 {/* Subject Selector before upload */}
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-300">Select Subject mapping (Optional)</label>
+                  <label className="text-sm font-semibold text-slate-300 flex items-center justify-between">
+                    <span>Select Subject mapping <span className="text-rose-500">*</span></span>
+                    {selectedSubjectId && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          if (window.confirm("Are you sure you want to clear classes, study plans, notes, and schedules ONLY for this subject? This cannot be undone.")) {
+                            resetSubjectMutation.mutate(selectedSubjectId)
+                          }
+                        }}
+                        className="text-xs text-rose-400 hover:text-rose-300 transition-colors cursor-pointer"
+                        disabled={resetSubjectMutation.isPending}
+                      >
+                        {resetSubjectMutation.isPending ? "Clearing..." : "Delete Subject Data / Re-upload"}
+                      </button>
+                    )}
+                  </label>
                   <Select value={selectedSubjectId} onValueChange={setSelectedSubjectId}>
                     <SelectTrigger className="bg-[#0b1329] border-slate-800 text-slate-200">
                       <SelectValue placeholder="Choose subject to assign classes..." />
@@ -258,7 +301,7 @@ export const UploadPage: React.FC = () => {
 
                 {/* Subject Selector mapping display / change */}
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-300">Target Subject Mapping</label>
+                  <label className="text-sm font-semibold text-slate-300">Mapped Subject <span className="text-rose-500">*</span></label>
                   <Select value={selectedSubjectId} onValueChange={setSelectedSubjectId}>
                     <SelectTrigger className="bg-[#0b1329] border-slate-800 text-slate-200">
                       <SelectValue placeholder="Choose subject..." />
@@ -288,7 +331,7 @@ export const UploadPage: React.FC = () => {
                     </Button>
                     <Button
                       onClick={() => importMutation.mutate()}
-                      disabled={preview.validRowsCount === 0 || importMutation.isPending}
+                      disabled={preview.validRowsCount === 0 || !selectedSubjectId || importMutation.isPending}
                       className="flex-1 sm:flex-initial bg-indigo-600 hover:bg-indigo-500 text-white"
                     >
                       {importMutation.isPending ? "Importing..." : "Import Valid Rows"}

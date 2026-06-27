@@ -29,6 +29,10 @@ public class LearningClass extends BaseEntity {
     @JoinColumn(name = "uploaded_file_id")
     private UploadedFile uploadedFile;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "subject_id")
+    private Subject subject;
+
     @Column(name = "class_no", nullable = false)
     private int classNo;
 

@@ -30,13 +30,64 @@ export const CalendarPage: React.FC = () => {
 
   const completeMutation = useMutation({
     mutationFn: completeSchedule,
+    onMutate: async (scheduleId) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ["allSchedules"] })
+
+      // Snapshot the previous value
+      const previousSchedules = queryClient.getQueryData<any[]>(["allSchedules"])
+
+      // Optimistically update to the new value
+      if (previousSchedules) {
+        queryClient.setQueryData(
+          ["allSchedules"],
+          previousSchedules.map((s) =>
+            s.id === scheduleId
+              ? { ...s, status: s.status === "COMPLETED" ? "PLANNED" : "COMPLETED" }
+              : s
+          )
+        )
+      }
+
+      // Return context for potential rollbacks
+      return { previousSchedules }
+    },
+    onError: (_err, _scheduleId, context) => {
+      if (context?.previousSchedules) {
+        queryClient.setQueryData(["allSchedules"], context.previousSchedules)
+      }
+      toast.error("Failed to update status.")
+    },
     onSuccess: (updated) => {
       toast.success(updated.status === "COMPLETED" ? "✅ Marked as completed!" : "↩ Marked as not started.")
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["allSchedules"] })
       queryClient.invalidateQueries({ queryKey: ["dashboard"], exact: false })
     },
-    onError: () => toast.error("Failed to update status."),
   })
+
+  const handleFilterTypeChange = (type: "all" | "subject" | "plan") => {
+    setFilterType(type)
+    if (type === "subject") {
+      if (subjects && subjects.length > 0 && subjects[0]) {
+        setFilterSubjectId(subjects[0].id)
+      } else {
+        setFilterSubjectId("")
+      }
+      setFilterPlanId("")
+    } else if (type === "plan") {
+      if (plans && plans.length > 0 && plans[0]) {
+        setFilterPlanId(plans[0].id)
+      } else {
+        setFilterPlanId("")
+      }
+      setFilterSubjectId("")
+    } else {
+      setFilterSubjectId("")
+      setFilterPlanId("")
+    }
+  }
 
   const monthStart = useMemo(() => new Date(year, month, 1), [year, month])
   const monthEnd = endOfMonth(monthStart)
@@ -113,7 +164,7 @@ export const CalendarPage: React.FC = () => {
             {(["all", "subject", "plan"] as const).map((t) => (
               <button
                 key={t}
-                onClick={() => { setFilterType(t); setFilterSubjectId(""); setFilterPlanId("") }}
+                onClick={() => handleFilterTypeChange(t)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                   filterType === t
                     ? "bg-violet-600 text-white"
@@ -231,39 +282,28 @@ export const CalendarPage: React.FC = () => {
                     {isLoading
                       ? null
                       : dailyTasks.map((task) => (
-                        <div key={task.id} className="group relative">
-                          <div
-                            className={`text-[10px] px-1.5 py-1 rounded-lg font-semibold truncate border cursor-pointer transition-all ${
+                        <div key={task.id} className="relative">
+                          <button
+                            onClick={() => completeMutation.mutate(task.id)}
+                            className={`w-full text-left text-[10px] px-1.5 py-1 rounded-lg font-semibold truncate border transition-all ${
                               task.status === "COMPLETED"
-                                ? "opacity-60 line-through"
+                                ? "opacity-80 hover:opacity-100"
                                 : "hover:brightness-125"
                             }`}
                             style={{
-                              backgroundColor: `${task.planColor || "#8b5cf6"}18`,
-                              borderColor: `${task.planColor || "#8b5cf6"}35`,
-                              color: task.status === "COMPLETED" ? "#6ee7b7" : (task.planColor || "#c4b5fd"),
+                              backgroundColor: task.status === "COMPLETED" ? "#10b98115" : `${task.planColor || "#8b5cf6"}18`,
+                              borderColor: task.status === "COMPLETED" ? "#10b98135" : `${task.planColor || "#8b5cf6"}35`,
+                              color: task.status === "COMPLETED" ? "#34d399" : (task.planColor || "#c4b5fd"),
                             }}
-                            title={`[${task.planName}] Class ${task.classNo}: ${task.topic}`}
+                            title={`[${task.planName}] Class ${task.classNo}: ${task.topic} - Click to toggle completion`}
                           >
-                            <span className="flex items-center gap-1">
+                            <span className="flex items-center gap-1.5">
                               {task.status === "COMPLETED"
                                 ? <CheckCircle2 className="h-2.5 w-2.5 shrink-0 text-emerald-400" />
-                                : <Clock className="h-2.5 w-2.5 shrink-0" />
+                                : <Clock className="h-2.5 w-2.5 shrink-0 text-indigo-400" />
                               }
-                              <span className="truncate">C{task.classNo}: {task.topic}</span>
+                              <span className="truncate text-[9.5px]">C{task.classNo}: {task.topic}</span>
                             </span>
-                          </div>
-                          {/* Complete/Undo button on hover */}
-                          <button
-                            className={`absolute -top-1 -right-1 hidden group-hover:flex items-center justify-center h-4 w-4 rounded-full text-[9px] font-bold shadow transition-all z-10 ${
-                              task.status === "COMPLETED"
-                                ? "bg-slate-600 text-white hover:bg-slate-500"
-                                : "bg-emerald-600 text-white hover:bg-emerald-500"
-                            }`}
-                            onClick={() => completeMutation.mutate(task.id)}
-                            title={task.status === "COMPLETED" ? "Undo completion" : "Mark as completed"}
-                          >
-                            {task.status === "COMPLETED" ? "↩" : "✓"}
                           </button>
                         </div>
                       ))

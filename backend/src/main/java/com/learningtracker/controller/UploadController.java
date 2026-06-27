@@ -24,8 +24,9 @@ public class UploadController {
 
     @PostMapping("/import")
     public ResponseEntity<UploadedFile> confirmImport(
-            @RequestParam("file") MultipartFile file) {
-        return ResponseEntity.ok(excelUploadService.confirmImport(file));
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("subjectId") java.util.UUID subjectId) {
+        return ResponseEntity.ok(excelUploadService.confirmImport(file, subjectId));
     }
 
     @GetMapping("/history")
@@ -34,8 +35,13 @@ public class UploadController {
     }
 
     @DeleteMapping("/reset")
-    public ResponseEntity<Void> resetData() {
-        excelUploadService.clearAllUserData();
+    public ResponseEntity<Void> resetData(
+            @RequestParam(value = "subjectId", required = false) java.util.UUID subjectId) {
+        if (subjectId != null) {
+            excelUploadService.clearUserDataBySubject(subjectId);
+        } else {
+            excelUploadService.clearAllUserData();
+        }
         return ResponseEntity.ok().build();
     }
 }
