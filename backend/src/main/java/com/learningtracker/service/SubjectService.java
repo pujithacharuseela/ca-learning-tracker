@@ -20,6 +20,7 @@ public class SubjectService {
 
     private final SubjectRepository subjectRepository;
     private final UserRepository userRepository;
+    private final ExcelUploadService excelUploadService;
 
     @Transactional(readOnly = true)
     public List<Subject> getSubjects() {
@@ -79,6 +80,10 @@ public class SubjectService {
         if (!subject.getUser().getId().equals(user.getId())) {
             throw new InvalidOperationException("You do not have permission to delete this subject.");
         }
+        
+        // Clear all user data associated with this subject first to avoid FK constraint violations
+        excelUploadService.clearUserDataBySubject(subjectId);
+        
         subjectRepository.delete(subject);
     }
 }

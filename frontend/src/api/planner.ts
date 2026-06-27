@@ -64,9 +64,9 @@ export async function deleteSubject(id: string): Promise<void> {
 }
 
 // ─── Classes ─────────────────────────────────────────────
-export async function getClasses(search: string, page: number, size: number): Promise<PaginatedResponse<LearningClass>> {
+export async function getClasses(search: string, page: number, size: number, subjectId?: string): Promise<PaginatedResponse<LearningClass>> {
   const response = await apiClient.get<PaginatedResponse<LearningClass>>('/planner/classes', {
-    params: { search, page, size },
+    params: { search, page, size, subjectId },
   });
   return response.data;
 }

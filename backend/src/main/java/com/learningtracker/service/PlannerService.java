@@ -215,10 +215,17 @@ public class PlannerService {
     }
 
     @Transactional(readOnly = true)
-    public Page<LearningClass> getAvailableClasses(String search, Pageable pageable) {
+    public Page<LearningClass> getAvailableClasses(String search, UUID subjectId, Pageable pageable) {
         String email = SecurityUtils.getCurrentUserEmail();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
+
+        if (subjectId != null) {
+            if (search != null && !search.isBlank()) {
+                return learningClassRepository.findByUserIdAndSubjectIdAndTopicContainingIgnoreCase(user.getId(), subjectId, search, pageable);
+            }
+            return learningClassRepository.findByUserIdAndSubjectId(user.getId(), subjectId, pageable);
+        }
 
         if (search != null && !search.isBlank()) {
             return learningClassRepository.findByUserIdAndTopicContainingIgnoreCase(user.getId(), search, pageable);

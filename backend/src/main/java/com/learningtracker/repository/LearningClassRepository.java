@@ -13,8 +13,11 @@ import java.util.UUID;
 public interface LearningClassRepository extends JpaRepository<LearningClass, UUID> {
     Page<LearningClass> findByUserId(UUID userId, Pageable pageable);
     Page<LearningClass> findByUserIdAndTopicContainingIgnoreCase(UUID userId, String topic, Pageable pageable);
+    Page<LearningClass> findByUserIdAndSubjectId(UUID userId, UUID subjectId, Pageable pageable);
+    Page<LearningClass> findByUserIdAndSubjectIdAndTopicContainingIgnoreCase(UUID userId, UUID subjectId, String topic, Pageable pageable);
     Optional<LearningClass> findByUserIdAndClassNo(UUID userId, int classNo);
     boolean existsByUserIdAndClassNo(UUID userId, int classNo);
+    boolean existsByUserIdAndSubjectIdAndClassNo(UUID userId, UUID subjectId, int classNo);
     long countByUserId(UUID userId);
 
     @org.springframework.data.jpa.repository.Modifying

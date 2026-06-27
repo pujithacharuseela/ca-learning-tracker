@@ -43,10 +43,12 @@ export const PlannerPage: React.FC = () => {
     queryFn: getSubjects,
   })
 
+  const [filterSubjectId, setFilterSubjectId] = useState<string>("all")
+
   // Fetch classes
   const { data: classesData, isLoading } = useQuery({
-    queryKey: ["classes", search, page],
-    queryFn: () => getClasses(search, page, 10),
+    queryKey: ["classes", search, filterSubjectId, page],
+    queryFn: () => getClasses(search, page, 10, filterSubjectId === "all" ? undefined : filterSubjectId),
   })
 
   // Fetch IDs of classes already scheduled in any plan
@@ -369,17 +371,36 @@ export const PlannerPage: React.FC = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Search */}
+      {/* Search and Filters */}
       <Card>
-        <CardContent className="pt-6">
-          <div className="relative w-full md:max-w-sm">
+        <CardContent className="pt-6 flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between">
+          <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
             <Input
               placeholder="Search topics..."
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(0) }}
-              className="pl-10 bg-[#020617]"
+              className="pl-10 bg-[#020617] border-slate-800"
             />
+          </div>
+          <div className="flex items-center gap-3 shrink-0">
+            <span className="text-xs font-semibold text-slate-400">Filter by Subject:</span>
+            <Select value={filterSubjectId} onValueChange={(val) => { setFilterSubjectId(val); setPage(0) }}>
+              <SelectTrigger className="w-[180px] bg-[#020617] border-slate-800 text-slate-200">
+                <SelectValue placeholder="All Subjects" />
+              </SelectTrigger>
+              <SelectContent className="bg-[#0b1329] border-slate-800 text-slate-200">
+                <SelectItem value="all">All Subjects</SelectItem>
+                {subjects?.map((s) => (
+                  <SelectItem key={s.id} value={s.id}>
+                    <span className="flex items-center gap-2">
+                      <span className="h-2 w-2 rounded-full inline-block" style={{ backgroundColor: s.color }} />
+                      {s.name}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
       </Card>

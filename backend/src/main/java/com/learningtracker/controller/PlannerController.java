@@ -72,13 +72,14 @@ public class PlannerController {
     @GetMapping("/classes")
     public ResponseEntity<Page<LearningClass>> getClasses(
             @RequestParam(required = false) String search,
+            @RequestParam(required = false) UUID subjectId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "classNo") String sortBy,
             @RequestParam(defaultValue = "ASC") String sortDir) {
         Sort sort = Sort.by(Sort.Direction.fromString(sortDir), sortBy);
         Pageable pageable = PageRequest.of(page, size, sort);
-        return ResponseEntity.ok(plannerService.getAvailableClasses(search, pageable));
+        return ResponseEntity.ok(plannerService.getAvailableClasses(search, subjectId, pageable));
     }
 
     @GetMapping("/classes/planned-ids")

@@ -131,7 +131,7 @@ public class ExcelUploadService {
             boolean valid = true;
             if (cl.getClassNo() <= 0) {
                 valid = false;
-            } else if (learningClassRepository.existsByUserIdAndClassNo(user.getId(), cl.getClassNo())) {
+            } else if (learningClassRepository.existsByUserIdAndSubjectIdAndClassNo(user.getId(), subject.getId(), cl.getClassNo())) {
                 valid = false;
             }
             if (cl.getTopic() == null || cl.getTopic().isBlank()) {

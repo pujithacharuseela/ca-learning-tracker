@@ -15,6 +15,7 @@ export const UploadPage: React.FC = () => {
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<any>(null)
   const [selectedSubjectId, setSelectedSubjectId] = useState<string>("")
+  const [previewPage, setPreviewPage] = useState(1)
   const fileInputRef = React.useRef<HTMLInputElement>(null)
 
   // Fetch subjects to filter/map classes on import
@@ -30,6 +31,15 @@ export const UploadPage: React.FC = () => {
   })
 
   const [uploadProgress, setUploadProgress] = useState(0)
+  const previewPageSize = 10
+
+  const paginatedPreviewRows = React.useMemo(() => {
+    if (!preview || !preview.rows) return []
+    const start = (previewPage - 1) * previewPageSize
+    return preview.rows.slice(start, start + previewPageSize)
+  }, [preview, previewPage])
+
+  const totalPreviewPages = preview && preview.rows ? Math.ceil(preview.rows.length / previewPageSize) : 1
 
   // Helper to start progress simulation
   const startProgressSimulation = () => {
@@ -57,6 +67,7 @@ export const UploadPage: React.FC = () => {
     },
     onSuccess: (data) => {
       setPreview(data)
+      setPreviewPage(1)
       toast.success("Excel parsed. Review the preview before importing.")
     },
     onError: (err: any) => {
@@ -86,6 +97,7 @@ export const UploadPage: React.FC = () => {
       setFile(null)
       setPreview(null)
       setSelectedSubjectId("")
+      setPreviewPage(1)
     },
     onError: (err: any) => {
       const msg = err.response?.data?.message
@@ -327,7 +339,7 @@ export const UploadPage: React.FC = () => {
                     <span className="text-sm font-semibold text-slate-200 truncate">{file?.name}</span>
                   </div>
                   <div className="flex gap-3 shrink-0">
-                    <Button variant="outline" className="flex-1 sm:flex-initial" onClick={() => { setFile(null); setPreview(null); setSelectedSubjectId("") }}>
+                    <Button variant="outline" className="flex-1 sm:flex-initial" onClick={() => { setFile(null); setPreview(null); setSelectedSubjectId(""); setPreviewPage(1); }}>
                       Cancel
                     </Button>
                     <Button
@@ -354,19 +366,19 @@ export const UploadPage: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-800/60 bg-[#0b1329]/20">
-                      {preview.rows.map((row: any) => (
-                        <tr key={row.rowIndex} className="hover:bg-slate-50 dark:hover:bg-slate-900/50">
-                          <td className="px-4 py-3 font-medium">{row.rowIndex}</td>
-                          <td className="px-4 py-3">{row.classNo}</td>
-                          <td className="px-4 py-3">{row.topic}</td>
-                          <td className="px-4 py-3">{row.durationDisplay}</td>
+                      {paginatedPreviewRows.map((row: any) => (
+                        <tr key={row.rowIndex} className="hover:bg-[#070d1e]/80 transition-colors">
+                          <td className="px-4 py-3 font-medium text-slate-400">{row.rowIndex}</td>
+                          <td className="px-4 py-3 text-slate-200 font-semibold">{row.classNo}</td>
+                          <td className="px-4 py-3 text-slate-350">{row.topic}</td>
+                          <td className="px-4 py-3 text-slate-400">{row.durationDisplay}</td>
                           <td className="px-4 py-3">
                             {row.valid ? (
-                              <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
-                                <CheckCircle2 className="h-4 w-4" /> Ready
+                              <span className="inline-flex items-center gap-1 text-emerald-400 font-medium">
+                                <CheckCircle2 className="h-4 w-4 text-emerald-400" /> Ready
                               </span>
                             ) : (
-                              <span className="inline-flex items-center gap-1 text-rose-600 dark:text-rose-400 font-medium" title={row.errorMessage}>
+                              <span className="inline-flex items-center gap-1 text-rose-400 font-medium" title={row.errorMessage}>
                                 <AlertTriangle className="h-4 w-4" /> {row.errorMessage && row.errorMessage.includes("Duplicate") ? "Duplicate" : "Rejected"}
                               </span>
                             )}
@@ -376,6 +388,33 @@ export const UploadPage: React.FC = () => {
                     </tbody>
                   </table>
                 </div>
+                
+                {/* Pagination Controls */}
+                {totalPreviewPages > 1 && (
+                  <div className="flex justify-between items-center px-4 py-3 border-t border-slate-800/80 bg-[#070d1e]/40 rounded-b-xl">
+                    <span className="text-xs text-slate-500">Page {previewPage} of {totalPreviewPages}</span>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPreviewPage(p => Math.max(1, p - 1))}
+                        disabled={previewPage === 1}
+                        className="border-slate-800 hover:bg-slate-900 text-xs"
+                      >
+                        Previous
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPreviewPage(p => Math.min(totalPreviewPages, p + 1))}
+                        disabled={previewPage === totalPreviewPages}
+                        className="border-slate-800 hover:bg-slate-900 text-xs"
+                      >
+                        Next
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
             )}
