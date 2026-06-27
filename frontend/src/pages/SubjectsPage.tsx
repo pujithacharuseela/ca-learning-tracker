@@ -40,7 +40,7 @@ export const SubjectsPage: React.FC = () => {
   })
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) => updateSubject(id, data),
+    mutationFn: ({ id, data }: { id: string; data: { name: string; color: string; description?: string } }) => updateSubject(id, data),
     onSuccess: () => {
       toast.success("Subject updated!")
       queryClient.invalidateQueries({ queryKey: ["subjects"] })
