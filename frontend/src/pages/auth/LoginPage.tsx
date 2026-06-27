@@ -47,7 +47,7 @@ export const LoginPage: React.FC = () => {
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
+             <FormField
               control={form.control}
               name="email"
               render={({ field }) => (
@@ -59,6 +59,7 @@ export const LoginPage: React.FC = () => {
                       <Input
                         placeholder="name@example.com"
                         type="email"
+                        style={{ paddingLeft: "2.5rem" }}
                         className="pl-10"
                         {...field}
                       />
@@ -89,6 +90,7 @@ export const LoginPage: React.FC = () => {
                       <Input
                         placeholder="••••••••"
                         type="password"
+                        style={{ paddingLeft: "2.5rem" }}
                         className="pl-10"
                         {...field}
                       />

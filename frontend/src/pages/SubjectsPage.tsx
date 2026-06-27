@@ -21,7 +21,7 @@ export const SubjectsPage: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false)
   const [editSubject, setEditSubject] = useState<SubjectData | null>(null)
   const [name, setName] = useState("")
-  const [color, setColor] = useState(PRESET_COLORS[0])
+  const [color, setColor] = useState(PRESET_COLORS[0] || "#8b5cf6")
   const [description, setDescription] = useState("")
 
   const { data: subjects, isLoading } = useQuery({
@@ -60,7 +60,7 @@ export const SubjectsPage: React.FC = () => {
 
   const openCreate = () => {
     setEditSubject(null)
-    setName(""); setColor(PRESET_COLORS[0]); setDescription("")
+    setName(""); setColor(PRESET_COLORS[0] || "#8b5cf6"); setDescription("")
     setIsOpen(true)
   }
 
@@ -72,7 +72,7 @@ export const SubjectsPage: React.FC = () => {
 
   const closeDialog = () => {
     setIsOpen(false); setEditSubject(null)
-    setName(""); setColor(PRESET_COLORS[0]); setDescription("")
+    setName(""); setColor(PRESET_COLORS[0] || "#8b5cf6"); setDescription("")
   }
 
   const handleSubmit = () => {

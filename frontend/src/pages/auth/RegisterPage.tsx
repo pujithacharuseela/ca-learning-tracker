@@ -66,7 +66,7 @@ export const RegisterPage: React.FC = () => {
                     <FormControl>
                       <div className="relative">
                         <UserIcon className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                        <Input placeholder="John" className="pl-10" {...field} />
+                        <Input placeholder="John" style={{ paddingLeft: "2.5rem" }} className="pl-10" {...field} />
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -83,7 +83,7 @@ export const RegisterPage: React.FC = () => {
                     <FormControl>
                       <div className="relative">
                         <UserIcon className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                        <Input placeholder="Doe" className="pl-10" {...field} />
+                        <Input placeholder="Doe" style={{ paddingLeft: "2.5rem" }} className="pl-10" {...field} />
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -104,6 +104,7 @@ export const RegisterPage: React.FC = () => {
                       <Input
                         placeholder="name@example.com"
                         type="email"
+                        style={{ paddingLeft: "2.5rem" }}
                         className="pl-10"
                         {...field}
                       />
@@ -126,6 +127,7 @@ export const RegisterPage: React.FC = () => {
                       <Input
                         placeholder="••••••••"
                         type="password"
+                        style={{ paddingLeft: "2.5rem" }}
                         className="pl-10"
                         {...field}
                       />
@@ -148,6 +150,7 @@ export const RegisterPage: React.FC = () => {
                       <Input
                         placeholder="••••••••"
                         type="password"
+                        style={{ paddingLeft: "2.5rem" }}
                         className="pl-10"
                         {...field}
                       />
