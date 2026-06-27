@@ -2,7 +2,7 @@ import React, { useState } from "react"
 import { getClasses, createPlan, getPlannedClassIds, getPlans, deletePlan, updatePlan, getSubjects } from "@/api/planner"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-import { Search, Plus, AlertCircle, CheckCircle2, Pencil, Trash2, BookOpen, GraduationCap, Calendar as CalendarIcon, Tag } from "lucide-react"
+import { Search, Plus, AlertCircle, CheckCircle2, Pencil, Trash2, BookOpen, GraduationCap } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 
 import { Button } from "@/components/ui/button"

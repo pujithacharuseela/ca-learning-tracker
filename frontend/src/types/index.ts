@@ -160,11 +160,16 @@ export interface PlanResponse {
   endDate: string;
   status: string;
   createdAt: string;
+  subjectId?: string;
+  subjectName?: string;
+  subjectColor?: string;
 }
 
 export interface ScheduleResponse {
   id: string;
   planId: string;
+  planName?: string;
+  planColor?: string;
   classId: string;
   classNo: number;
   topic: string;

@@ -2,7 +2,7 @@ import React, { useState } from "react"
 import { uploadExcelPreview, confirmExcelImport, getUploadHistory, resetUserData, getSubjects } from "@/api/planner"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-import { Upload, FileSpreadsheet, CheckCircle2, AlertTriangle, History, Trash2, Tag } from "lucide-react"
+import { Upload, FileSpreadsheet, CheckCircle2, AlertTriangle, History, Trash2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"

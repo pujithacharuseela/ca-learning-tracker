@@ -77,10 +77,11 @@ export const SubjectsPage: React.FC = () => {
 
   const handleSubmit = () => {
     if (!name.trim()) { toast.error("Subject name is required."); return }
+    const descriptionParam = description.trim() || undefined;
     if (editSubject) {
-      updateMutation.mutate({ id: editSubject.id, data: { name, color, description } })
+      updateMutation.mutate({ id: editSubject.id, data: { name, color, description: descriptionParam } })
     } else {
-      createMutation.mutate({ name, color, description })
+      createMutation.mutate({ name, color, description: descriptionParam })
     }
   }
 
