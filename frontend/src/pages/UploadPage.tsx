@@ -6,6 +6,7 @@ import { Upload, FileSpreadsheet, CheckCircle2, AlertTriangle, History } from "l
 
 import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
+import { LoadingSpinner } from "@/components/shared/LoadingSpinner"
 
 export const UploadPage: React.FC = () => {
   const queryClient = useQueryClient()
@@ -41,6 +42,8 @@ export const UploadPage: React.FC = () => {
     onSuccess: () => {
       toast.success("Import completed successfully!")
       queryClient.invalidateQueries({ queryKey: ["uploadHistory"] })
+      queryClient.invalidateQueries({ queryKey: ["classes"] })
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] })
       setFile(null)
       setPreview(null)
     },
@@ -71,7 +74,12 @@ export const UploadPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative">
+      {(previewMutation.isPending || importMutation.isPending) && (
+        <div className="absolute inset-0 bg-[#020617]/70 backdrop-blur-sm z-50 flex items-center justify-center rounded-2xl min-h-[400px]">
+          <LoadingSpinner size="lg" text={previewMutation.isPending ? "Parsing spreadsheet..." : "Importing classes..."} />
+        </div>
+      )}
       <h1 className="text-3xl font-extrabold tracking-tight text-slate-100">Upload Plan</h1>
 
       <div className="grid gap-6 md:grid-cols-3">
