@@ -43,17 +43,17 @@ export const AnalyticsPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-50">Analytics</h1>
-          <p className="text-slate-500 text-sm mt-1">Review study trends, distributions, and ratings</p>
+          <h1 className="text-3xl font-extrabold tracking-tight text-slate-100">Analytics</h1>
+          <p className="text-slate-400 text-sm mt-1">Review study trends, distributions, and ratings</p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Input type="date" value={start} onChange={(e) => setStart(e.target.value)} className="w-40" />
-          <span className="text-slate-400">to</span>
-          <Input type="date" value={end} onChange={(e) => setEnd(e.target.value)} className="w-40" />
-          <Button onClick={handleExport} className="bg-indigo-600 hover:bg-indigo-500 text-white flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Input type="date" value={start} onChange={(e) => setStart(e.target.value)} className="w-40 bg-[#070d1e]" />
+          <span className="text-slate-400 font-medium">to</span>
+          <Input type="date" value={end} onChange={(e) => setEnd(e.target.value)} className="w-40 bg-[#070d1e]" />
+          <Button onClick={handleExport} className="bg-violet-600 hover:bg-violet-500 text-white flex items-center gap-2 rounded-xl px-4">
             <Download className="h-4 w-4" /> Export Report
           </Button>
         </div>
@@ -64,29 +64,35 @@ export const AnalyticsPage: React.FC = () => {
       ) : (
         <div className="space-y-6">
           {/* Overview Grid */}
-          <div className="grid gap-6 md:grid-cols-4">
-            <Card>
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <Card className="hover:border-slate-700/80 transition-all duration-300">
               <CardContent className="pt-6">
-                <span className="text-sm font-medium text-slate-500">Hours Studied</span>
-                <p className="text-3xl font-bold mt-2 text-indigo-600">{metrics?.totalHoursStudied}h</p>
+                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Hours Studied</span>
+                <p className="text-3xl font-extrabold mt-2 text-violet-400">{(metrics?.totalHoursStudied || 0).toFixed(1)}<span className="text-lg font-bold text-slate-400 ml-1">hrs</span></p>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="hover:border-slate-700/80 transition-all duration-300">
               <CardContent className="pt-6">
-                <span className="text-sm font-medium text-slate-500">Sessions Logged</span>
-                <p className="text-3xl font-bold mt-2 text-emerald-600">{metrics?.totalSessionsCompleted}</p>
+                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Sessions Logged</span>
+                <p className="text-3xl font-extrabold mt-2 text-emerald-400">{metrics?.totalSessionsCompleted || 0}</p>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="hover:border-slate-700/80 transition-all duration-300">
               <CardContent className="pt-6">
-                <span className="text-sm font-medium text-slate-500">Avg Session Rating</span>
-                <p className="text-3xl font-bold mt-2 text-amber-500">{metrics?.averageRating.toFixed(1)} / 5</p>
+                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Avg Session Rating</span>
+                <p className="text-3xl font-extrabold mt-2 text-amber-400">
+                  {(metrics?.averageRating || 0).toFixed(1)}
+                  <span className="text-sm font-semibold text-slate-400 ml-1">/ 5.0</span>
+                </p>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="hover:border-slate-700/80 transition-all duration-300">
               <CardContent className="pt-6">
-                <span className="text-sm font-medium text-slate-500">Avg Difficulty</span>
-                <p className="text-3xl font-bold mt-2 text-rose-500">{metrics?.averageDifficulty.toFixed(1)} / 5</p>
+                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Avg Difficulty</span>
+                <p className="text-3xl font-extrabold mt-2 text-rose-400">
+                  {(metrics?.averageDifficulty || 0).toFixed(1)}
+                  <span className="text-sm font-semibold text-slate-400 ml-1">/ 5.0</span>
+                </p>
               </CardContent>
             </Card>
           </div>

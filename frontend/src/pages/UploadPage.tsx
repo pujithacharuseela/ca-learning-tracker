@@ -54,7 +54,7 @@ export const UploadPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-50">Upload Plan</h1>
+      <h1 className="text-3xl font-extrabold tracking-tight text-slate-100">Upload Plan</h1>
 
       <div className="grid gap-6 md:grid-cols-3">
         {/* Upload Zone */}
@@ -67,36 +67,36 @@ export const UploadPage: React.FC = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             {!preview ? (
-              <div className="border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-xl p-12 text-center hover:bg-slate-50 dark:hover:bg-slate-900/50 transition cursor-pointer relative">
+              <div className="border-2 border-dashed border-slate-800 hover:border-slate-700/80 rounded-2xl p-12 text-center bg-[#070d1e]/40 hover:bg-[#070d1e]/80 transition-all duration-300 cursor-pointer relative">
                 <input
                   type="file"
                   accept=".xlsx"
                   className="absolute inset-0 opacity-0 cursor-pointer"
                   onChange={handleFileChange}
                 />
-                <Upload className="mx-auto h-12 w-12 text-indigo-600 dark:text-indigo-400 animate-bounce" />
-                <h3 className="mt-4 text-lg font-semibold text-slate-900 dark:text-slate-50">
+                <Upload className="mx-auto h-12 w-12 text-violet-400 animate-bounce" />
+                <h3 className="mt-4 text-lg font-bold text-slate-200">
                   Drag and drop your spreadsheet here
                 </h3>
-                <p className="mt-2 text-sm text-slate-500">or click to browse from files</p>
+                <p className="mt-2 text-sm text-slate-400">or click to browse from files</p>
               </div>
             ) : (
               <div className="space-y-6 animate-in fade-in zoom-in-95">
                 {/* Parsing Summary */}
                 <div className="grid grid-cols-3 gap-4">
-                  <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-lg text-center">
-                    <span className="text-sm text-slate-500">Total Rows</span>
-                    <p className="text-2xl font-bold mt-1">{preview.totalRows}</p>
+                  <div className="bg-[#070d1e]/60 border border-slate-800 p-4 rounded-xl text-center">
+                    <span className="text-xs uppercase tracking-wider font-semibold text-slate-400">Total Rows</span>
+                    <p className="text-2xl font-bold mt-1 text-slate-100">{preview.totalRows}</p>
                   </div>
-                  <div className="bg-emerald-50 dark:bg-emerald-950/20 p-4 rounded-lg text-center">
-                    <span className="text-sm text-emerald-600 dark:text-emerald-400">Valid Rows</span>
-                    <p className="text-2xl font-bold mt-1 text-emerald-600 dark:text-emerald-400">
+                  <div className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl text-center">
+                    <span className="text-xs uppercase tracking-wider font-semibold text-emerald-400">Valid Rows</span>
+                    <p className="text-2xl font-bold mt-1 text-emerald-400">
                       {preview.validRowsCount}
                     </p>
                   </div>
-                  <div className="bg-rose-50 dark:bg-rose-950/20 p-4 rounded-lg text-center">
-                    <span className="text-sm text-rose-600 dark:text-rose-400">Invalid Rows</span>
-                    <p className="text-2xl font-bold mt-1 text-rose-600 dark:text-rose-400">
+                  <div className="bg-rose-500/10 border border-rose-500/20 p-4 rounded-xl text-center">
+                    <span className="text-xs uppercase tracking-wider font-semibold text-rose-400">Invalid Rows</span>
+                    <p className="text-2xl font-bold mt-1 text-rose-400">
                       {preview.invalidRowsCount}
                     </p>
                   </div>

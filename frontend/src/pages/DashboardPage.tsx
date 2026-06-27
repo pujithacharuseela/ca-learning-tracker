@@ -90,19 +90,21 @@ export const DashboardPage: React.FC = () => {
       {/* Top Banner Grid */}
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {[
-          { title: "Current Streak", value: `${dashboard?.currentStreak || 0} Days`, icon: Flame, color: "text-amber-500" },
-          { title: "Classes Completed", value: dashboard?.completedClassesCount || "0", icon: CheckCircle, color: "text-emerald-500" },
-          { title: "Hours Studied", value: `${dashboard?.totalStudyHours || 0}h`, icon: Clock, color: "text-indigo-500" },
-          { title: "Completion Rate", value: `${Math.round(dashboard?.completionPercentage || 0)}%`, icon: BookOpen, color: "text-violet-500" },
+          { title: "Current Streak", value: `${dashboard?.currentStreak || 0} Days`, icon: Flame, color: "text-amber-400 bg-amber-500/10 border-amber-500/20" },
+          { title: "Classes Completed", value: dashboard?.completedClassesCount || "0", icon: CheckCircle, color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20" },
+          { title: "Hours Studied", value: `${dashboard?.totalStudyHours || 0}h`, icon: Clock, color: "text-indigo-400 bg-indigo-500/10 border-indigo-500/20" },
+          { title: "Completion Rate", value: `${Math.round(dashboard?.completionPercentage || 0)}%`, icon: BookOpen, color: "text-violet-400 bg-violet-500/10 border-violet-500/20" },
         ].map((item, i) => (
-          <Card key={i}>
+          <Card key={i} className="hover:border-slate-700/80 transition-all duration-300">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <span className="text-sm font-medium text-slate-500 dark:text-slate-400">{item.title}</span>
-                  <p className="text-3xl font-bold mt-2 text-slate-900 dark:text-slate-50">{item.value}</p>
+                  <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">{item.title}</span>
+                  <p className="text-3xl font-extrabold mt-2 text-slate-100">{item.value}</p>
                 </div>
-                <item.icon className={`h-8 w-8 ${item.color}`} />
+                <div className={`p-3 rounded-xl border ${item.color.split(" ").slice(1).join(" ")}`}>
+                  <item.icon className={`h-6 w-6 ${item.color.split(" ")[0]}`} />
+                </div>
               </div>
             </CardContent>
           </Card>
