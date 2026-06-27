@@ -87,47 +87,47 @@ export const PlannerPage: React.FC = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-50">Learning Planner</h1>
-          <p className="text-slate-500 text-sm mt-1">Select imported classes and plan your study distribution</p>
+          <h1 className="text-3xl font-extrabold tracking-tight text-slate-100">Learning Planner</h1>
+          <p className="text-slate-400 text-sm mt-1">Select imported classes and plan your study distribution</p>
         </div>
 
         {selectedClasses.length > 0 && (
           <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-indigo-600 hover:bg-indigo-500 text-white flex items-center gap-2">
+              <Button className="bg-violet-600 hover:bg-violet-500 text-white flex items-center gap-2 rounded-xl">
                 <Plus className="h-4 w-4" /> Create Plan ({selectedClasses.length})
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[425px] bg-[#0b1329] border border-slate-800 text-slate-100">
               <DialogHeader>
-                <DialogTitle>Create Learning Plan</DialogTitle>
-                <DialogDescription>
+                <DialogTitle className="text-slate-100">Create Learning Plan</DialogTitle>
+                <DialogDescription className="text-slate-400">
                   Enter dates and details to distribute study tasks.
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="name">Plan Name *</Label>
-                  <Input id="name" value={planName} onChange={(e) => setPlanName(e.target.value)} placeholder="e.g. Mathematics Module A" />
+                  <Label htmlFor="name" className="text-slate-200">Plan Name *</Label>
+                  <Input id="name" value={planName} onChange={(e) => setPlanName(e.target.value)} placeholder="e.g. Mathematics Module A" className="bg-[#020617]" />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="desc">Description</Label>
-                  <Input id="desc" value={planDesc} onChange={(e) => setPlanDesc(e.target.value)} placeholder="Topics to cover" />
+                  <Label htmlFor="desc" className="text-slate-200">Description</Label>
+                  <Input id="desc" value={planDesc} onChange={(e) => setPlanDesc(e.target.value)} placeholder="Topics to cover" className="bg-[#020617]" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
-                    <Label htmlFor="start">Start Date *</Label>
-                    <Input id="start" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+                    <Label htmlFor="start" className="text-slate-200">Start Date *</Label>
+                    <Input id="start" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="bg-[#020617]" />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="end">End Date *</Label>
-                    <Input id="end" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+                    <Label htmlFor="end" className="text-slate-200">End Date *</Label>
+                    <Input id="end" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="bg-[#020617]" />
                   </div>
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
-                <Button onClick={handleCreatePlan} disabled={createPlanMutation.isPending}>
+                <Button variant="outline" onClick={() => setIsOpen(false)} className="border-slate-800 hover:bg-slate-900 text-slate-300">Cancel</Button>
+                <Button onClick={handleCreatePlan} disabled={createPlanMutation.isPending} className="bg-violet-600 hover:bg-violet-500">
                   Schedule Distribution
                 </Button>
               </DialogFooter>
@@ -140,12 +140,12 @@ export const PlannerPage: React.FC = () => {
       <Card>
         <CardContent className="pt-6">
           <div className="relative w-full md:max-w-sm">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+            <Search className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
             <Input
               placeholder="Search topics..."
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(0); }}
-              className="pl-10"
+              className="pl-10 bg-[#020617]"
             />
           </div>
         </CardContent>
@@ -156,7 +156,7 @@ export const PlannerPage: React.FC = () => {
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
-              <thead className="bg-slate-50 dark:bg-slate-900 text-xs font-semibold text-slate-500 uppercase border-b">
+              <thead className="bg-[#070d1e] text-xs font-semibold text-slate-400 uppercase border-b border-slate-800/80">
                 <tr>
                   <th className="px-6 py-4 w-12">
                     <Checkbox checked={isAllPageSelected} onCheckedChange={handleSelectAll} />
@@ -166,7 +166,7 @@ export const PlannerPage: React.FC = () => {
                   <th className="px-6 py-4">Duration</th>
                 </tr>
               </thead>
-              <tbody className="divide-y">
+              <tbody className="divide-y divide-slate-800/80">
                 {isLoading ? (
                   <tr>
                     <td colSpan={4} className="text-center py-8 text-slate-500">Loading classes...</td>
@@ -175,8 +175,8 @@ export const PlannerPage: React.FC = () => {
                   <tr>
                     <td colSpan={4} className="text-center py-8 text-slate-500">
                       <div className="flex flex-col items-center gap-2">
-                        <AlertCircle className="h-8 w-8 text-slate-400" />
-                        <span>No classes found. Go to Upload Plan page to import schedules.</span>
+                        <AlertCircle className="h-8 w-8 text-slate-500" />
+                        <span className="text-slate-400">No classes found. Go to Upload Plan page to import schedules.</span>
                       </div>
                     </td>
                   </tr>
@@ -184,8 +184,8 @@ export const PlannerPage: React.FC = () => {
                   classesData?.content.map((cl) => (
                     <tr
                       key={cl.id}
-                      className={`hover:bg-slate-50 dark:hover:bg-slate-900/50 cursor-pointer ${
-                        selectedClasses.includes(cl.id) ? "bg-indigo-50/30 dark:bg-indigo-950/10" : ""
+                      className={`hover:bg-[#070d1e]/80 cursor-pointer ${
+                        selectedClasses.includes(String(cl.id)) ? "bg-violet-600/10 text-violet-400" : "text-slate-300"
                       }`}
                       onClick={() => toggleSelectClass(String(cl.id))}
                     >
@@ -195,7 +195,7 @@ export const PlannerPage: React.FC = () => {
                           onCheckedChange={() => toggleSelectClass(String(cl.id))}
                         />
                       </td>
-                      <td className="px-6 py-4 font-medium">{cl.classNo}</td>
+                      <td className="px-6 py-4 font-semibold">{cl.classNo}</td>
                       <td className="px-6 py-4">{cl.topic}</td>
                       <td className="px-6 py-4">{cl.durationDisplay}</td>
                     </tr>
