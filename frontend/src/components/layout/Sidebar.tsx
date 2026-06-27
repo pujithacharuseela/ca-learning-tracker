@@ -9,7 +9,8 @@ import {
   BarChart3, 
   Award, 
   Settings, 
-  GraduationCap
+  GraduationCap,
+  BookOpen
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -18,6 +19,7 @@ export const SidebarContent: React.FC = () => {
   
   const navItems = [
     { name: "Dashboard", href: "/", icon: LayoutDashboard },
+    { name: "Subjects", href: "/subjects", icon: BookOpen },
     { name: "Planner", href: "/planner", icon: ListTodo },
     { name: "Calendar", href: "/calendar", icon: Calendar },
     { name: "Upload Plan", href: "/upload", icon: Upload },
@@ -42,6 +44,7 @@ export const SidebarContent: React.FC = () => {
           <NavLink
             key={item.name}
             to={item.href}
+            end={item.href === "/"}
             className={({ isActive }) =>
               cn(
                 "group flex items-center rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",

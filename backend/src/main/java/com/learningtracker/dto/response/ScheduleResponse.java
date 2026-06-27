@@ -15,6 +15,8 @@ import java.util.UUID;
 public class ScheduleResponse {
     private UUID id;
     private UUID planId;
+    private String planName;
+    private String planColor; // subject color or default
     private UUID classId;
     private int classNo;
     private String topic;

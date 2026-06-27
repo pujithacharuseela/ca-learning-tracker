@@ -34,4 +34,6 @@ public class PlanAssignmentRequest {
 
     @NotEmpty(message = "Please select at least one class to schedule")
     private List<UUID> classIds;
+
+    private UUID subjectId; // optional subject association
 }

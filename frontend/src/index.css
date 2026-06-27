@@ -13,26 +13,47 @@
   --color-primary-900: #4c1d95;
 }
 
+/* ─── DARK THEME (Default) ─────────────────────────────── */
 :root {
   color-scheme: dark;
   --background: #020617;
   --surface: #0b1329;
+  --surface-2: #070d1e;
   --border: #1e293b;
+  --border-subtle: #0f172a;
   --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
+  --text-muted: #475569;
   --primary: #8b5cf6;
+  --input-bg: #020617;
+  --card-bg: #0b1329;
+  --hover-bg: #0f172a;
+  --badge-active: rgba(16,185,129,0.15);
+  --badge-active-text: #34d399;
+  --badge-active-border: rgba(16,185,129,0.3);
 }
 
+/* ─── LIGHT THEME ───────────────────────────────────────── */
 .light {
   color-scheme: light;
-  --background: #f8fafc;
+  --background: #f1f5f9;
   --surface: #ffffff;
+  --surface-2: #f8fafc;
   --border: #e2e8f0;
+  --border-subtle: #f1f5f9;
   --text-primary: #0f172a;
   --text-secondary: #475569;
+  --text-muted: #94a3b8;
   --primary: #6d28d9;
+  --input-bg: #ffffff;
+  --card-bg: #ffffff;
+  --hover-bg: #f1f5f9;
+  --badge-active: rgba(16,185,129,0.1);
+  --badge-active-text: #059669;
+  --badge-active-border: rgba(16,185,129,0.25);
 }
 
+/* ─── BASE ───────────────────────────────────────────────── */
 body {
   background-color: var(--background);
   color: var(--text-primary);
@@ -42,25 +63,133 @@ body {
   min-height: 100vh;
 }
 
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: var(--background);
-}
-::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--text-secondary);
+/* ─── LIGHT MODE OVERRIDES ───────────────────────────────── */
+/* Fix hardcoded dark backgrounds that appear in light mode */
+.light .bg-\[\#020617\] { background-color: #ffffff !important; }
+.light .bg-\[\#0b1329\] { background-color: #f8fafc !important; }
+.light .bg-\[\#070d1e\] { background-color: #f1f5f9 !important; }
+.light .bg-\[\#070d1e\]\/20 { background-color: rgba(241,245,249,0.8) !important; }
+.light .bg-\[\#070d1e\]\/30 { background-color: rgba(241,245,249,0.9) !important; }
+.light .bg-\[\#070d1e\]\/60 { background-color: rgba(241,245,249,0.95) !important; }
+.light .bg-\[\#070d1e\]\/80 { background-color: #f1f5f9 !important; }
+.light .bg-\[\#0b1329\]\/30 { background-color: rgba(248,250,252,0.9) !important; }
+.light .bg-\[\#0b1329\]\/40 { background-color: rgba(248,250,252,0.95) !important; }
+
+/* Fix hardcoded dark text colors */
+.light .text-slate-100 { color: #0f172a !important; }
+.light .text-slate-200 { color: #1e293b !important; }
+.light .text-slate-300 { color: #334155 !important; }
+
+/* Fix hardcoded dark borders */
+.light .border-slate-800 { border-color: #e2e8f0 !important; }
+.light .border-slate-800\/60 { border-color: rgba(226,232,240,0.8) !important; }
+.light .border-slate-800\/80 { border-color: rgba(226,232,240,0.9) !important; }
+.light .border-slate-850 { border-color: #e2e8f0 !important; }
+
+/* Fix hover backgrounds in light mode */
+.light .hover\:bg-\[\#070d1e\]\/80:hover { background-color: #f1f5f9 !important; }
+.light .hover\:bg-slate-900\/60:hover { background-color: rgba(241,245,249,0.8) !important; }
+.light .hover\:bg-slate-900:hover { background-color: #f1f5f9 !important; }
+
+/* Fix dark cards in light mode */
+.light .bg-\[\#0b1329\]\/60 { background-color: rgba(248,250,252,0.95) !important; }
+.light .bg-slate-800\/25 { background-color: rgba(241,245,249,0.8) !important; }
+.light .bg-slate-950 { background-color: #e2e8f0 !important; }
+
+/* Fix table header dark bg */
+.light .bg-\[\#070d1e\] { background-color: #f8fafc !important; }
+
+/* Fix input backgrounds */
+.light input[class*="bg-[#020617]"],
+.light input[class*="bg-[#0b1329]"] {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
 }
 
-/* Custom Toaster / Sonner close button styling */
+/* ShadCN UI Card + Input light mode fixes */
+.light [data-slot="card"] {
+  background-color: #ffffff;
+  border-color: #e2e8f0;
+  color: #0f172a;
+}
+.light [data-slot="card-title"] { color: #0f172a; }
+.light [data-slot="card-description"] { color: #475569; }
+
+/* Dialog light mode */
+.light [role="dialog"] {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+/* Select dropdown in light mode */
+.light [data-radix-popper-content-wrapper] [class*="bg-[#0b1329]"] {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Fix sidebar in light mode */
+.light aside { 
+  background-color: #ffffff;
+  border-color: #e2e8f0;
+}
+.light aside .text-slate-400 { color: #475569 !important; }
+.light aside .text-slate-200 { color: #1e293b !important; }
+.light aside .text-slate-500 { color: #64748b !important; }
+.light aside .text-slate-100 { color: #0f172a !important; }
+
+/* Fix header in light mode */
+.light header {
+  background-color: rgba(255,255,255,0.85) !important;
+  border-color: #e2e8f0 !important;
+}
+.light header .text-slate-100 { color: #0f172a !important; }
+.light header .text-slate-300 { color: #374151 !important; }
+
+/* ─── SCROLLBAR ──────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--background); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+
+/* ─── TOASTER CLOSE BUTTON ───────────────────────────────── */
 [data-sonner-toast] [data-close-button] {
   left: auto !important;
   right: 8px !important;
   top: 8px !important;
 }
+
+/* ─── FULL-SCREEN LOADING OVERLAY ───────────────────────── */
+.upload-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(2, 6, 23, 0.8);
+  backdrop-filter: blur(8px);
+}
+.light .upload-overlay {
+  background-color: rgba(241, 245, 249, 0.85);
+}
+
+/* ─── THEME-AWARE UTILITIES ─────────────────────────────── */
+.theme-bg-input {
+  background-color: var(--input-bg);
+  color: var(--text-primary);
+  border-color: var(--border);
+}
+.theme-bg-surface {
+  background-color: var(--surface);
+  color: var(--text-primary);
+}
+.theme-bg-surface-2 {
+  background-color: var(--surface-2);
+}
+.theme-text-primary { color: var(--text-primary); }
+.theme-text-secondary { color: var(--text-secondary); }
+.theme-text-muted { color: var(--text-muted); }
+.theme-border { border-color: var(--border); }

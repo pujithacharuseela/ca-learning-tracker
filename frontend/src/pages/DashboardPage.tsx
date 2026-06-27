@@ -82,7 +82,12 @@ export const DashboardPage: React.FC = () => {
   }
 
   if (isLoading) {
-    return <div className="text-center py-12 text-slate-500">Loading dashboard...</div>
+    return (
+      <div className="flex h-[60vh] w-full flex-col items-center justify-center gap-3">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-violet-600 border-t-transparent"></div>
+        <p className="text-slate-500 font-medium text-sm">Loading dashboard...</p>
+      </div>
+    )
   }
 
   return (

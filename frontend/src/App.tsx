@@ -15,6 +15,7 @@ import { OtpVerificationPage } from "@/pages/auth/OtpVerificationPage"
 import { ResetPasswordPage } from "@/pages/auth/ResetPasswordPage"
 
 import { DashboardPage } from "@/pages/DashboardPage"
+import { SubjectsPage } from "@/pages/SubjectsPage"
 import { SettingsPage } from "@/pages/SettingsPage"
 import { UploadPage } from "@/pages/UploadPage"
 import { PlannerPage } from "@/pages/PlannerPage"
@@ -52,6 +53,7 @@ export const App: React.FC = () => {
               <Route element={<ProtectedRoute />}>
                 <Route element={<AppLayout />}>
                   <Route path="/" element={<DashboardPage />} />
+                  <Route path="/subjects" element={<SubjectsPage />} />
                   <Route path="/upload" element={<UploadPage />} />
                   <Route path="/planner" element={<PlannerPage />} />
                   <Route path="/calendar" element={<CalendarPage />} />

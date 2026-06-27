@@ -1,6 +1,7 @@
-import React from "react"
+import React, { useEffect, useState } from "react"
 import { useAuth } from "@/contexts/AuthContext"
 import { useTheme } from "@/contexts/ThemeContext"
+import { useNavigate } from "react-router-dom"
 import { Theme } from "@/types"
 import { Sun, Moon, Bell, LogOut, User as UserIcon, Settings as SettingsIcon, Menu } from "lucide-react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -8,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { SidebarContent } from "./Sidebar"
+import { toast } from "sonner"
 
 interface HeaderProps {
   onMenuClick?: () => void
@@ -16,6 +18,22 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = () => {
   const { user, logout } = useAuth()
   const { theme, setTheme } = useTheme()
+  const navigate = useNavigate()
+
+  // Track profile pic state with listener
+  const [profilePic, setProfilePic] = useState<string>("")
+
+  const loadPic = () => {
+    if (user?.email) {
+      setProfilePic(localStorage.getItem(`profile_pic_${user.email}`) || "")
+    }
+  }
+
+  useEffect(() => {
+    loadPic()
+    window.addEventListener("profile-picture-updated", loadPic)
+    return () => window.removeEventListener("profile-picture-updated", loadPic)
+  }, [user?.email])
 
   const getInitials = () => {
     if (!user) return "U"
@@ -58,7 +76,15 @@ export const Header: React.FC<HeaderProps> = () => {
         </Button>
 
         {/* Notifications */}
-        <Button variant="ghost" size="icon" className="relative">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative"
+          onClick={() => {
+            navigate("/settings")
+            toast.info("Manage notification reminder settings in Preferences panel.")
+          }}
+        >
           <Bell className="h-5 w-5 text-slate-300" />
           <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500" />
         </Button>
@@ -68,22 +94,27 @@ export const Header: React.FC<HeaderProps> = () => {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-9 w-9 rounded-full">
               <Avatar className="h-9 w-9 border border-violet-500/20">
-                <AvatarFallback className="bg-violet-600/20 text-violet-400 font-bold border border-violet-500/20">
-                  {getInitials()}
-                </AvatarFallback>
+                {profilePic ? (
+                  <img src={profilePic} alt="Avatar" className="h-full w-full object-cover rounded-full" />
+                ) : (
+                  <AvatarFallback className="bg-violet-600/20 text-violet-400 font-bold border border-violet-500/20">
+                    {getInitials()}
+                  </AvatarFallback>
+                )}
               </Avatar>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            <DropdownMenuLabel>
+              <div>
+                <p className="font-semibold">{user?.firstName} {user?.lastName}</p>
+                <p className="text-xs text-slate-500 font-normal">{user?.email}</p>
+              </div>
+            </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate("/settings")}>
               <UserIcon className="mr-2 h-4 w-4" />
-              <span>Profile</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <SettingsIcon className="mr-2 h-4 w-4" />
-              <span>Settings</span>
+              <span>Profile & Settings</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={logout} className="text-red-600 dark:text-red-400">

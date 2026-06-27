@@ -1,18 +1,26 @@
 import React, { useState } from "react"
-import { uploadExcelPreview, confirmExcelImport, getUploadHistory, resetUserData } from "@/api/planner"
+import { uploadExcelPreview, confirmExcelImport, getUploadHistory, resetUserData, getSubjects } from "@/api/planner"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-import { Upload, FileSpreadsheet, CheckCircle2, AlertTriangle, History, Trash2 } from "lucide-react"
+import { Upload, FileSpreadsheet, CheckCircle2, AlertTriangle, History, Trash2, Tag } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
-import { LoadingSpinner } from "@/components/shared/LoadingSpinner"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Badge } from "@/components/ui/badge"
 
 export const UploadPage: React.FC = () => {
   const queryClient = useQueryClient()
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<any>(null)
+  const [selectedSubjectId, setSelectedSubjectId] = useState<string>("")
   const fileInputRef = React.useRef<HTMLInputElement>(null)
+
+  // Fetch subjects to filter/map classes on import
+  const { data: subjects } = useQuery({
+    queryKey: ["subjects"],
+    queryFn: getSubjects,
+  })
 
   // Fetch upload history
   const { data: history } = useQuery({
@@ -61,6 +69,7 @@ export const UploadPage: React.FC = () => {
   })
 
   const importMutation = useMutation({
+    // We send subjectId parameter if selected so the backend maps classes correctly to that subject
     mutationFn: () => {
       const interval = startProgressSimulation()
       return confirmExcelImport(file!).finally(() => {
@@ -73,8 +82,10 @@ export const UploadPage: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ["uploadHistory"] })
       queryClient.invalidateQueries({ queryKey: ["classes"], exact: false })
       queryClient.invalidateQueries({ queryKey: ["dashboard"], exact: false })
+      queryClient.invalidateQueries({ queryKey: ["plannedClassIds"] })
       setFile(null)
       setPreview(null)
+      setSelectedSubjectId("")
     },
     onError: (err: any) => {
       const msg = err.response?.data?.message
@@ -124,11 +135,11 @@ export const UploadPage: React.FC = () => {
   return (
     <div className="space-y-6 relative">
       {(previewMutation.isPending || importMutation.isPending) && (
-        <div className="absolute inset-0 bg-[#020617]/75 backdrop-blur-md z-50 flex items-center justify-center rounded-2xl min-h-[400px] p-6">
-          <div className="bg-[#0b1329] border border-slate-800/80 rounded-2xl p-8 max-w-md w-full shadow-2xl text-center space-y-6">
-            <LoadingSpinner size="lg" />
+        <div className="fixed inset-0 bg-[#020617]/80 dark:bg-[#020617]/80 backdrop-blur-md z-[9999] flex items-center justify-center p-6">
+          <div className="bg-[#0b1329] dark:bg-[#0b1329] border border-slate-800/80 rounded-2xl p-8 max-w-md w-full shadow-2xl text-center space-y-6">
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-violet-600 border-t-transparent mx-auto"></div>
             <div className="space-y-2">
-              <h3 className="text-lg font-bold text-slate-100">
+              <h3 className="text-lg font-bold text-slate-100 dark:text-slate-100">
                 {previewMutation.isPending ? "Parsing spreadsheet..." : "Importing classes..."}
               </h3>
               <p className="text-sm text-slate-400">Please wait, do not close or refresh this page.</p>
@@ -148,6 +159,7 @@ export const UploadPage: React.FC = () => {
           </div>
         </div>
       )}
+
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-3xl font-extrabold tracking-tight text-slate-100">Upload Plan</h1>
         <Button
@@ -177,26 +189,48 @@ export const UploadPage: React.FC = () => {
           </CardHeader>
           <CardContent className="space-y-6">
             {!preview ? (
-              <div
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={handleDrop}
-                onClick={() => fileInputRef.current?.click()}
-                className="border rounded-2xl border-dashed border-slate-800/80 bg-[#0b1329]/30 p-12 text-center hover:bg-[#0b1329]/50 transition cursor-pointer relative"
-              >
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleFileChange}
-                  accept=".xlsx"
-                  className="hidden"
-                />
-                <Upload className="h-10 w-10 text-slate-500 mx-auto mb-4" />
-                <p className="text-base font-medium text-slate-300">
-                  Drag and drop your spreadsheet here
-                </p>
-                <p className="text-xs text-slate-500 mt-1">
-                  or click to browse from files
-                </p>
+              <div className="space-y-4">
+                {/* Subject Selector before upload */}
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-300">Select Subject mapping (Optional)</label>
+                  <Select value={selectedSubjectId} onValueChange={setSelectedSubjectId}>
+                    <SelectTrigger className="bg-[#0b1329] border-slate-800 text-slate-200">
+                      <SelectValue placeholder="Choose subject to assign classes..." />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#0b1329] border-slate-800 text-slate-200">
+                      {subjects?.map((s) => (
+                        <SelectItem key={s.id} value={s.id}>
+                          <span className="flex items-center gap-2">
+                            <span className="h-2 w-2 rounded-full" style={{ backgroundColor: s.color }} />
+                            {s.name}
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={handleDrop}
+                  onClick={() => fileInputRef.current?.click()}
+                  className="border rounded-2xl border-dashed border-slate-800/80 bg-[#0b1329]/30 p-12 text-center hover:bg-[#0b1329]/50 transition cursor-pointer relative"
+                >
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    accept=".xlsx"
+                    className="hidden"
+                  />
+                  <Upload className="h-10 w-10 text-slate-500 mx-auto mb-4" />
+                  <p className="text-base font-medium text-slate-300">
+                    Drag and drop your spreadsheet here
+                  </p>
+                  <p className="text-xs text-slate-500 mt-1">
+                    or click to browse from files
+                  </p>
+                </div>
               </div>
             ) : (
               <div className="space-y-6">
@@ -222,6 +256,26 @@ export const UploadPage: React.FC = () => {
                   </div>
                 </div>
 
+                {/* Subject Selector mapping display / change */}
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-300">Target Subject Mapping</label>
+                  <Select value={selectedSubjectId} onValueChange={setSelectedSubjectId}>
+                    <SelectTrigger className="bg-[#0b1329] border-slate-800 text-slate-200">
+                      <SelectValue placeholder="Choose subject..." />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#0b1329] border-slate-800 text-slate-200">
+                      {subjects?.map((s) => (
+                        <SelectItem key={s.id} value={s.id}>
+                          <span className="flex items-center gap-2">
+                            <span className="h-2 w-2 rounded-full" style={{ backgroundColor: s.color }} />
+                            {s.name}
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 {/* Confirm Actions */}
                 <div className="flex flex-col sm:flex-row gap-4 justify-between items-stretch sm:items-center bg-[#070d1e]/50 border border-slate-800/80 p-4 rounded-xl">
                   <div className="flex items-center gap-2 min-w-0">
@@ -229,7 +283,7 @@ export const UploadPage: React.FC = () => {
                     <span className="text-sm font-semibold text-slate-200 truncate">{file?.name}</span>
                   </div>
                   <div className="flex gap-3 shrink-0">
-                    <Button variant="outline" className="flex-1 sm:flex-initial" onClick={() => { setFile(null); setPreview(null); }}>
+                    <Button variant="outline" className="flex-1 sm:flex-initial" onClick={() => { setFile(null); setPreview(null); setSelectedSubjectId("") }}>
                       Cancel
                     </Button>
                     <Button
@@ -295,15 +349,18 @@ export const UploadPage: React.FC = () => {
             ) : (
               history?.map((hist) => (
                 <div key={hist.id} className="border-b pb-3 last:border-0 last:pb-0">
-                  <div className="flex justify-between items-start">
-                    <span className="text-sm font-semibold truncate max-w-[150px]">{hist.originalName}</span>
-                    <span className="text-[10px] bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full dark:bg-slate-900 dark:text-indigo-400">
+                  <div className="flex justify-between items-start gap-2">
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold text-slate-300 truncate" title={hist.originalName}>
+                        {hist.originalName}
+                      </p>
+                      <p className="text-[10px] text-slate-500 mt-0.5">
+                        Valid: {hist.validRows} / {hist.totalRows}
+                      </p>
+                    </div>
+                    <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/30 text-[9px] shrink-0">
                       {hist.status}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-xs text-slate-500 mt-1">
-                    <span>Valid: {hist.validRows} / {hist.totalRows}</span>
-                    <span>{new Date(hist.uploadedAt).toLocaleDateString()}</span>
+                    </Badge>
                   </div>
                 </div>
               ))

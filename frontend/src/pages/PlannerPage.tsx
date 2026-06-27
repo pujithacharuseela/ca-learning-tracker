@@ -1,8 +1,9 @@
 import React, { useState } from "react"
-import { getClasses, createPlan, getPlannedClassIds, getPlans, deletePlan, updatePlan } from "@/api/planner"
+import { getClasses, createPlan, getPlannedClassIds, getPlans, deletePlan, updatePlan, getSubjects } from "@/api/planner"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-import { Search, Plus, AlertCircle, CheckCircle2, Pencil, Trash2, BookOpen } from "lucide-react"
+import { Search, Plus, AlertCircle, CheckCircle2, Pencil, Trash2, BookOpen, GraduationCap, Calendar as CalendarIcon, Tag } from "lucide-react"
+import { useNavigate } from "react-router-dom"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,9 +12,11 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export const PlannerPage: React.FC = () => {
   const queryClient = useQueryClient()
+  const navigate = useNavigate()
   const [search, setSearch] = useState("")
   const [page, setPage] = useState(0)
   const [selectedClasses, setSelectedClasses] = useState<string[]>([])
@@ -24,11 +27,21 @@ export const PlannerPage: React.FC = () => {
   const [planDesc, setPlanDesc] = useState("")
   const [startDate, setStartDate] = useState("")
   const [endDate, setEndDate] = useState("")
+  const [selectedSubjectId, setSelectedSubjectId] = useState<string>("")
 
   // Edit Plan Dialog state
   const [editPlanId, setEditPlanId] = useState<string | null>(null)
   const [editName, setEditName] = useState("")
   const [editDesc, setEditDesc] = useState("")
+  const [editStartDate, setEditStartDate] = useState("")
+  const [editEndDate, setEditEndDate] = useState("")
+  const [editSubjectId, setEditSubjectId] = useState("")
+
+  // Fetch subjects first
+  const { data: subjects } = useQuery({
+    queryKey: ["subjects"],
+    queryFn: getSubjects,
+  })
 
   // Fetch classes
   const { data: classesData, isLoading } = useQuery({
@@ -57,17 +70,17 @@ export const PlannerPage: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ["plannedClassIds"] })
       setIsOpen(false)
       setSelectedClasses([])
-      setPlanName(""); setPlanDesc(""); setStartDate(""); setEndDate("")
+      setPlanName(""); setPlanDesc(""); setStartDate(""); setEndDate(""); setSelectedSubjectId("")
     },
     onError: (err: any) => toast.error(err.response?.data?.message || "Failed to create plan."),
   })
 
   const updatePlanMutation = useMutation({
-    mutationFn: ({ id, name, desc }: { id: string; name: string; desc: string }) =>
-      updatePlan(id, name, desc),
+    mutationFn: ({ id, data }: { id: string; data: any }) => updatePlan(id, data),
     onSuccess: () => {
       toast.success("Plan updated successfully!")
       queryClient.invalidateQueries({ queryKey: ["plans"] })
+      queryClient.invalidateQueries({ queryKey: ["allSchedules"] })
       setEditPlanId(null)
     },
     onError: (err: any) => toast.error(err.response?.data?.message || "Failed to update plan."),
@@ -79,7 +92,7 @@ export const PlannerPage: React.FC = () => {
       toast.success("Plan deleted.")
       queryClient.invalidateQueries({ queryKey: ["plans"] })
       queryClient.invalidateQueries({ queryKey: ["plannedClassIds"] })
-      queryClient.invalidateQueries({ queryKey: ["planSchedules"] })
+      queryClient.invalidateQueries({ queryKey: ["allSchedules"] })
     },
     onError: (err: any) => toast.error(err.response?.data?.message || "Failed to delete plan."),
   })
@@ -113,12 +126,48 @@ export const PlannerPage: React.FC = () => {
       startDate: startDate as any,
       endDate: endDate as any,
       classIds: selectedClasses,
+      subjectId: selectedSubjectId || undefined,
+    })
+  }
+
+  const handleUpdatePlan = () => {
+    if (!editPlanId || !editName || !editStartDate || !editEndDate) {
+      toast.error("Mandatory fields missing.")
+      return
+    }
+    updatePlanMutation.mutate({
+      id: editPlanId,
+      data: {
+        name: editName,
+        description: editDesc,
+        startDate: editStartDate,
+        endDate: editEndDate,
+        subjectId: editSubjectId || undefined,
+      }
     })
   }
 
   const isAllPageSelected = classesData?.content
     ? classesData.content.every((c) => selectedClasses.includes(String(c.id)))
     : false
+
+  // If there are no subjects, display prompt to create subjects first
+  if (!isLoading && (!subjects || subjects.length === 0)) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 gap-4 text-center">
+        <GraduationCap className="h-16 w-16 text-violet-500 animate-pulse" />
+        <div>
+          <h2 className="text-xl font-bold text-slate-100">Subjects Required</h2>
+          <p className="text-sm text-slate-400 mt-1 max-w-md">
+            You must add at least one subject before configuring study planners. Adding subjects helps map schedules.
+          </p>
+        </div>
+        <Button onClick={() => navigate("/subjects")} className="bg-violet-600 hover:bg-violet-500 rounded-xl">
+          Create Subjects Now
+        </Button>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -145,6 +194,24 @@ export const PlannerPage: React.FC = () => {
                 <div className="grid gap-2">
                   <Label htmlFor="name" className="text-slate-200">Plan Name *</Label>
                   <Input id="name" value={planName} onChange={(e) => setPlanName(e.target.value)} placeholder="e.g. Mathematics Module A" className="bg-[#020617]" />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="subject" className="text-slate-200">Map to Subject</Label>
+                  <Select value={selectedSubjectId} onValueChange={setSelectedSubjectId}>
+                    <SelectTrigger className="bg-[#020617] border-slate-800 text-slate-200">
+                      <SelectValue placeholder="Select subject..." />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#0b1329] border-slate-800 text-slate-200">
+                      {subjects?.map((s) => (
+                        <SelectItem key={s.id} value={s.id}>
+                          <span className="flex items-center gap-2">
+                            <span className="h-2.5 w-2.5 rounded-full inline-block" style={{ backgroundColor: s.color }} />
+                            {s.name}
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="desc" className="text-slate-200">Description</Label>
@@ -184,7 +251,14 @@ export const PlannerPage: React.FC = () => {
             {plans.map((plan) => (
               <div key={plan.id} className="flex items-center justify-between bg-[#070d1e]/60 border border-slate-800/60 rounded-xl px-4 py-3">
                 <div>
-                  <p className="text-sm font-semibold text-slate-200">{plan.name}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-semibold text-slate-200">{plan.name}</p>
+                    {plan.subjectName && (
+                      <Badge style={{ backgroundColor: `${plan.subjectColor}20`, color: plan.subjectColor, borderColor: `${plan.subjectColor}40` }} className="text-[10px] py-0 border">
+                        {plan.subjectName}
+                      </Badge>
+                    )}
+                  </div>
                   <p className="text-xs text-slate-500 mt-0.5">{plan.startDate} → {plan.endDate}</p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -195,7 +269,14 @@ export const PlannerPage: React.FC = () => {
                     size="icon"
                     variant="ghost"
                     className="h-7 w-7 text-slate-500 hover:text-indigo-400"
-                    onClick={() => { setEditPlanId(plan.id); setEditName(plan.name); setEditDesc(plan.description || "") }}
+                    onClick={() => {
+                      setEditPlanId(plan.id)
+                      setEditName(plan.name)
+                      setEditDesc(plan.description || "")
+                      setEditStartDate(plan.startDate || "")
+                      setEditEndDate(plan.endDate || "")
+                      setEditSubjectId(plan.subjectId || "")
+                    }}
                   >
                     <Pencil className="h-3.5 w-3.5" />
                   </Button>
@@ -221,9 +302,10 @@ export const PlannerPage: React.FC = () => {
 
       {/* Edit Plan Dialog */}
       <Dialog open={!!editPlanId} onOpenChange={(o) => !o && setEditPlanId(null)}>
-        <DialogContent className="sm:max-w-[400px] bg-[#0b1329] border border-slate-800 text-slate-100">
+        <DialogContent className="sm:max-w-[420px] bg-[#0b1329] border border-slate-800 text-slate-100">
           <DialogHeader>
-            <DialogTitle>Edit Plan</DialogTitle>
+            <DialogTitle>Edit Plan Details</DialogTitle>
+            <DialogDescription className="text-slate-400">Modify properties or date intervals.</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
@@ -231,18 +313,46 @@ export const PlannerPage: React.FC = () => {
               <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="bg-[#020617]" />
             </div>
             <div className="grid gap-2">
+              <Label className="text-slate-200">Subject Mapping</Label>
+              <Select value={editSubjectId} onValueChange={setEditSubjectId}>
+                <SelectTrigger className="bg-[#020617] border-slate-800 text-slate-200">
+                  <SelectValue placeholder="Select subject..." />
+                </SelectTrigger>
+                <SelectContent className="bg-[#0b1329] border-slate-800 text-slate-200">
+                  {subjects?.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>
+                      <span className="flex items-center gap-2">
+                        <span className="h-2.5 w-2.5 rounded-full inline-block" style={{ backgroundColor: s.color }} />
+                        {s.name}
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
               <Label className="text-slate-200">Description</Label>
               <Input value={editDesc} onChange={(e) => setEditDesc(e.target.value)} className="bg-[#020617]" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label className="text-slate-200">Start Date *</Label>
+                <Input type="date" value={editStartDate} onChange={(e) => setEditStartDate(e.target.value)} className="bg-[#020617]" />
+              </div>
+              <div className="grid gap-2">
+                <Label className="text-slate-200">End Date *</Label>
+                <Input type="date" value={editEndDate} onChange={(e) => setEditEndDate(e.target.value)} className="bg-[#020617]" />
+              </div>
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditPlanId(null)} className="border-slate-800 text-slate-300">Cancel</Button>
             <Button
-              onClick={() => editPlanId && updatePlanMutation.mutate({ id: editPlanId, name: editName, desc: editDesc })}
+              onClick={handleUpdatePlan}
               disabled={updatePlanMutation.isPending}
               className="bg-violet-600 hover:bg-violet-500"
             >
-              Save Changes
+              {updatePlanMutation.isPending ? "Saving..." : "Save Changes"}
             </Button>
           </DialogFooter>
         </DialogContent>

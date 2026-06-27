@@ -22,4 +22,8 @@ public class PlanResponse {
     private LocalDate endDate;
     private PlanStatus status;
     private LocalDateTime createdAt;
+    // Subject info
+    private UUID subjectId;
+    private String subjectName;
+    private String subjectColor;
 }

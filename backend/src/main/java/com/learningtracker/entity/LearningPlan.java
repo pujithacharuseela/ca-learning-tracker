@@ -1,5 +1,6 @@
 package com.learningtracker.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.learningtracker.constant.enums.PlanStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -18,9 +19,14 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class LearningPlan extends BaseEntity {
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "subject_id")
+    private Subject subject;
 
     @Column(name = "name", nullable = false, length = 255)
     private String name;

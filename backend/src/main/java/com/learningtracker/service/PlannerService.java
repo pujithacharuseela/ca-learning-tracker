@@ -34,6 +34,7 @@ public class PlannerService {
     private final ScheduleRepository scheduleRepository;
     private final LearningClassRepository learningClassRepository;
     private final UserRepository userRepository;
+    private final SubjectRepository subjectRepository;
 
     @Transactional
     public PlanResponse createPlan(PlanAssignmentRequest request) {
@@ -59,6 +60,9 @@ public class PlannerService {
         plan.setStartDate(request.getStartDate());
         plan.setEndDate(request.getEndDate());
         plan.setStatus(PlanStatus.ACTIVE);
+        if (request.getSubjectId() != null) {
+            subjectRepository.findById(request.getSubjectId()).ifPresent(plan::setSubject);
+        }
         plan = learningPlanRepository.save(plan);
 
         distributeClasses(user, plan, classIds, request.getStartDate(), request.getEndDate());
@@ -67,7 +71,7 @@ public class PlannerService {
     }
 
     @Transactional
-    public PlanResponse updatePlan(UUID planId, String name, String description) {
+    public PlanResponse updatePlan(UUID planId, String name, String description, java.time.LocalDate startDate, java.time.LocalDate endDate, UUID subjectId) {
         String email = SecurityUtils.getCurrentUserEmail();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
@@ -81,6 +85,11 @@ public class PlannerService {
 
         if (name != null && !name.isBlank()) plan.setName(name);
         if (description != null) plan.setDescription(description);
+        if (startDate != null) plan.setStartDate(startDate);
+        if (endDate != null) plan.setEndDate(endDate);
+        if (subjectId != null) {
+            subjectRepository.findById(subjectId).ifPresent(plan::setSubject);
+        }
         plan = learningPlanRepository.save(plan);
         return mapToPlanResponse(plan);
     }
@@ -157,6 +166,17 @@ public class PlannerService {
                 .collect(Collectors.toSet());
     }
 
+    @Transactional(readOnly = true)
+    public List<ScheduleResponse> getAllSchedules() {
+        String email = SecurityUtils.getCurrentUserEmail();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
+        return learningPlanRepository.findByUserId(user.getId()).stream()
+                .flatMap(plan -> scheduleRepository.findByPlanId(plan.getId()).stream())
+                .map(this::mapToScheduleResponse)
+                .collect(Collectors.toList());
+    }
+
     @Transactional
     public ScheduleResponse rescheduleClass(UUID scheduleId, LocalDate newDate) {
         Schedule schedule = scheduleRepository.findById(scheduleId)
@@ -211,21 +231,30 @@ public class PlannerService {
     }
 
     private PlanResponse mapToPlanResponse(LearningPlan plan) {
-        return PlanResponse.builder()
+        PlanResponse.PlanResponseBuilder builder = PlanResponse.builder()
                 .id(plan.getId())
                 .name(plan.getName())
                 .description(plan.getDescription())
                 .startDate(plan.getStartDate())
                 .endDate(plan.getEndDate())
                 .status(plan.getStatus())
-                .createdAt(plan.getCreatedAt())
-                .build();
+                .createdAt(plan.getCreatedAt());
+        if (plan.getSubject() != null) {
+            builder.subjectId(plan.getSubject().getId())
+                    .subjectName(plan.getSubject().getName())
+                    .subjectColor(plan.getSubject().getColor());
+        }
+        return builder.build();
     }
 
     private ScheduleResponse mapToScheduleResponse(Schedule sc) {
+        LearningPlan plan = sc.getPlan();
+        String color = (plan.getSubject() != null) ? plan.getSubject().getColor() : "#8b5cf6";
         return ScheduleResponse.builder()
                 .id(sc.getId())
-                .planId(sc.getPlan().getId())
+                .planId(plan.getId())
+                .planName(plan.getName())
+                .planColor(color)
                 .classId(sc.getLearningClass().getId())
                 .classNo(sc.getLearningClass().getClassNo())
                 .topic(sc.getLearningClass().getTopic())

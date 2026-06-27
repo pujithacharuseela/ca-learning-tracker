@@ -31,8 +31,7 @@ public class PlannerController {
 
     @PostMapping("/plans")
     public ResponseEntity<PlanResponse> createPlan(@Valid @RequestBody PlanAssignmentRequest request) {
-        PlanResponse response = plannerService.createPlan(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(plannerService.createPlan(request));
     }
 
     @GetMapping("/plans")
@@ -44,7 +43,13 @@ public class PlannerController {
     public ResponseEntity<PlanResponse> updatePlan(
             @PathVariable UUID planId,
             @RequestBody Map<String, String> body) {
-        return ResponseEntity.ok(plannerService.updatePlan(planId, body.get("name"), body.get("description")));
+        LocalDate startDate = body.containsKey("startDate") && body.get("startDate") != null && !body.get("startDate").isBlank()
+                ? LocalDate.parse(body.get("startDate")) : null;
+        LocalDate endDate = body.containsKey("endDate") && body.get("endDate") != null && !body.get("endDate").isBlank()
+                ? LocalDate.parse(body.get("endDate")) : null;
+        UUID subjectId = body.containsKey("subjectId") && body.get("subjectId") != null && !body.get("subjectId").isBlank()
+                ? UUID.fromString(body.get("subjectId")) : null;
+        return ResponseEntity.ok(plannerService.updatePlan(planId, body.get("name"), body.get("description"), startDate, endDate, subjectId));
     }
 
     @DeleteMapping("/plans/{planId}")
@@ -58,6 +63,12 @@ public class PlannerController {
         return ResponseEntity.ok(plannerService.getSchedulesForPlan(planId));
     }
 
+    /** Returns ALL schedules across all plans — used by Calendar "All" view */
+    @GetMapping("/schedules/all")
+    public ResponseEntity<List<ScheduleResponse>> getAllSchedules() {
+        return ResponseEntity.ok(plannerService.getAllSchedules());
+    }
+
     @GetMapping("/classes")
     public ResponseEntity<Page<LearningClass>> getClasses(
             @RequestParam(required = false) String search,
@@ -65,7 +76,6 @@ public class PlannerController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "classNo") String sortBy,
             @RequestParam(defaultValue = "ASC") String sortDir) {
-
         Sort sort = Sort.by(Sort.Direction.fromString(sortDir), sortBy);
         Pageable pageable = PageRequest.of(page, size, sort);
         return ResponseEntity.ok(plannerService.getAvailableClasses(search, pageable));
