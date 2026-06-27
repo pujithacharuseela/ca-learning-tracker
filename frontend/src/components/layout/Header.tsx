@@ -41,7 +41,7 @@ export const Header: React.FC<HeaderProps> = () => {
     const fetchNotifications = async () => {
       try {
         const list = []
-        // Welcoming
+        // 1. Welcoming Notification
         list.push({
           id: "welcome",
           text: "Welcome to CA Learning Tracker! Set up your subjects and upload your planner to begin.",
@@ -50,23 +50,126 @@ export const Header: React.FC<HeaderProps> = () => {
           read: false
         })
 
-        // Fetch streak
+        // 2. Fetch Plans to show Scheduled Notifications
         try {
-          const res = await apiClient.get('/gamification/streak')
-          if (res.data && res.data.currentStreak > 0) {
-            list.push({
-              id: "streak",
-              text: `🔥 Active Streak: ${res.data.currentStreak} day(s) study streak! Keep studying to maintain it.`,
-              time: "Today",
-              type: "streak",
-              read: false
+          const plansRes = await apiClient.get('/planner/plans')
+          if (plansRes.data && Array.isArray(plansRes.data)) {
+            plansRes.data.forEach((plan: any) => {
+              list.push({
+                id: `plan-${plan.id}`,
+                text: `📅 Plan Scheduled: "${plan.name}" starts on ${plan.startDate}. Subject: ${plan.subjectName || "None"}`,
+                time: "Recently",
+                type: "plan",
+                read: false
+              })
             })
           }
         } catch (e) {
           // ignore
         }
 
-        // Fetch achievements
+        // 3. Fetch User Settings and Daily Schedules for Deadline Reminders
+        try {
+          const settingsRes = await apiClient.get('/settings')
+          const reminderTimeStr = settingsRes.data?.reminderTime || "09:00"
+          const [rHour, rMin] = reminderTimeStr.split(':').map(Number)
+
+          const todayStr = new Date().toISOString().split('T')[0]
+          const dailyRes = await apiClient.get(`/planner/schedules/daily?date=${todayStr}`)
+
+          if (dailyRes.data && Array.isArray(dailyRes.data)) {
+            const now = new Date()
+            const targetTime = new Date()
+            targetTime.setHours(rHour, rMin, 0, 0)
+
+            const diffMs = targetTime.getTime() - now.getTime()
+            const diffMinutes = Math.round(diffMs / (1000 * 60))
+
+            dailyRes.data.forEach((task: any) => {
+              if (task.status !== "COMPLETED") {
+                if (diffMinutes > 0) {
+                  if (diffMinutes <= 180 && diffMinutes > 120) {
+                    list.push({
+                      id: `rem-3h-${task.id}`,
+                      text: `⏰ Reminder: Class "C${task.classNo}: ${task.topic}" is due in less than 3 hours!`,
+                      time: "3 hours left",
+                      type: "reminder",
+                      read: false
+                    })
+                  } else if (diffMinutes <= 60 && diffMinutes > 30) {
+                    list.push({
+                      id: `rem-1h-${task.id}`,
+                      text: `⏰ Urgent Reminder: Class "C${task.classNo}: ${task.topic}" is due in less than 1 hour!`,
+                      time: "1 hour left",
+                      type: "reminder",
+                      read: false
+                    })
+                  } else if (diffMinutes <= 30 && diffMinutes > 0) {
+                    list.push({
+                      id: `rem-30m-${task.id}`,
+                      text: `🚨 Final Reminder: Class "C${task.classNo}: ${task.topic}" is due in ${diffMinutes} minutes!`,
+                      time: `${diffMinutes}m left`,
+                      type: "reminder",
+                      read: false
+                    })
+                  }
+                } else {
+                  list.push({
+                    id: `rem-overdue-${task.id}`,
+                    text: `⚠️ Overdue: Class "C${task.classNo}: ${task.topic}" deadline missed today!`,
+                    time: "Overdue",
+                    type: "reminder",
+                    read: false
+                  })
+                }
+              }
+            })
+          }
+        } catch (e) {
+          // ignore
+        }
+
+        // 4. Fetch Streak and Achievement Notifications
+        try {
+          const res = await apiClient.get('/gamification/streak')
+          const hasPendingToday = list.some(item => item.id.startsWith("rem-"))
+          
+          if (res.data) {
+            const currentStreak = res.data.currentStreak || 0
+            if (currentStreak > 0) {
+              list.push({
+                id: "streak-active",
+                text: `🔥 Study Streak: You are on a ${currentStreak}-day streak! Keep studying to maintain it.`,
+                time: "Today",
+                type: "streak",
+                read: false
+              })
+              
+              const currentHour = new Date().getHours()
+              if (hasPendingToday && currentHour >= 18) {
+                list.push({
+                  id: "streak-warning",
+                  text: `⚠️ Streak Warning: You have pending classes today! Complete them before midnight to keep your streak alive.`,
+                  time: "Action needed",
+                  type: "streak",
+                  read: false
+                })
+              }
+            } else if (res.data.longestStreak > 0) {
+              list.push({
+                id: "streak-missed",
+                text: `💔 Streak Missed: You missed your daily study streak. Complete your scheduled classes today to start a new streak!`,
+                time: "Streak Missed",
+                type: "streak",
+                read: false
+              })
+            }
+          }
+        } catch (e) {
+          // ignore
+        }
+
+        // 5. Fetch Achievements
         try {
           const res = await apiClient.get('/gamification/achievements')
           if (res.data && Array.isArray(res.data)) {
