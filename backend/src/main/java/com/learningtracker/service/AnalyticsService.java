@@ -25,6 +25,7 @@ public class AnalyticsService {
     private final ScheduleRepository scheduleRepository;
     private final UserRepository userRepository;
 
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public AnalyticsResponse getAnalyticsData(LocalDate startDate, LocalDate endDate) {
         String email = SecurityUtils.getCurrentUserEmail();
         User user = userRepository.findByEmail(email)

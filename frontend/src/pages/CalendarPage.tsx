@@ -373,7 +373,20 @@ export const CalendarPage: React.FC = () => {
                 title="Click to toggle completion status"
               >
                 <div className="flex flex-col gap-0.5 min-w-0 pr-2">
-                  <span className="text-[10px] text-slate-500 font-semibold">{task.planName}</span>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">{task.planName}</span>
+                    {task.status === "COMPLETED" ? (
+                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                        <CheckCircle2 className="h-2.5 w-2.5" />
+                        Completed
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                        <Clock className="h-2.5 w-2.5" />
+                        Incomplete
+                      </span>
+                    )}
+                  </div>
                   <span className="text-sm font-bold text-slate-200 truncate">C{task.classNo}: {task.topic}</span>
                   <span className="text-xs text-slate-400">{task.durationDisplay}</span>
                 </div>

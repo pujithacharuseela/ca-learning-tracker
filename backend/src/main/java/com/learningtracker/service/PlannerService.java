@@ -134,8 +134,9 @@ public class PlannerService {
                 ? StudyStatus.NOT_STARTED
                 : StudyStatus.COMPLETED;
 
-        scheduleRepository.updateStatusById(scheduleId, newStatus);
         schedule.setStatus(newStatus);
+        schedule.setCompletedAt(newStatus == StudyStatus.COMPLETED ? java.time.LocalDateTime.now() : null);
+        scheduleRepository.save(schedule);
 
         if (newStatus == StudyStatus.COMPLETED) {
             boolean exists = studySessionRepository.findAll().stream()

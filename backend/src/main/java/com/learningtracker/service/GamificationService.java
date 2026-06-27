@@ -75,7 +75,7 @@ public class GamificationService {
         }
 
         Set<LocalDate> completedDates = completedSchedules.stream()
-                .map(s -> s.getCompletedAt().toLocalDate())
+                .map(s -> s.getCompletedAt() != null ? s.getCompletedAt().toLocalDate() : s.getScheduledDate())
                 .collect(Collectors.toSet());
 
         long streak = 0;

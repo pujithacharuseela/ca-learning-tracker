@@ -24,6 +24,7 @@ public class DashboardService {
     private final StudySessionRepository studySessionRepository;
     private final UserAchievementRepository userAchievementRepository;
 
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public DashboardResponse getDashboardData() {
         String email = SecurityUtils.getCurrentUserEmail();
         User user = userRepository.findByEmail(email)

@@ -159,15 +159,30 @@ export const DashboardPage: React.FC = () => {
                       <span>{task.durationDisplay}</span>
                     </div>
                   </div>
-                  {task.status !== "COMPLETED" && !activeSession ? (
-                    <Button size="sm" onClick={() => startMutation.mutate(task.id)} className="bg-indigo-600 text-white hover:bg-indigo-500">
-                      <Play className="h-3.5 w-3.5 mr-1" /> Start Study
-                    </Button>
-                  ) : (
-                    <span className="text-xs bg-slate-100 text-slate-700 px-2.5 py-1 rounded-full font-medium dark:bg-slate-900 dark:text-slate-400">
-                      {task.status}
-                    </span>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {task.status === "COMPLETED" ? (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        <CheckCircle className="h-3.5 w-3.5" />
+                        Completed
+                      </span>
+                    ) : task.status === "IN_PROGRESS" ? (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20 animate-pulse">
+                        <Play className="h-3.5 w-3.5 fill-blue-400/25" />
+                        In Progress
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-900 text-slate-400 border border-slate-800">
+                        <Clock className="h-3.5 w-3.5" />
+                        Not Started
+                      </span>
+                    )}
+
+                    {task.status !== "COMPLETED" && !activeSession && (
+                      <Button size="sm" onClick={() => startMutation.mutate(task.id)} className="bg-indigo-600 text-white hover:bg-indigo-500">
+                        <Play className="h-3.5 w-3.5 mr-1" /> Start Study
+                      </Button>
+                    )}
+                  </div>
                 </div>
               ))
             )}
