@@ -30,7 +30,7 @@ export const SubjectsPage: React.FC = () => {
   })
 
   const createMutation = useMutation({
-    mutationFn: createSubject,
+    mutationFn: (data: { name: string; color: string; description?: string }) => createSubject(data),
     onSuccess: () => {
       toast.success("Subject created!")
       queryClient.invalidateQueries({ queryKey: ["subjects"] })
