@@ -11,6 +11,7 @@ export const UploadPage: React.FC = () => {
   const queryClient = useQueryClient()
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<any>(null)
+  const fileInputRef = React.useRef<HTMLInputElement>(null)
 
   // Fetch upload history
   const { data: history } = useQuery({
