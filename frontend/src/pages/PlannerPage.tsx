@@ -425,7 +425,7 @@ export const PlannerPage: React.FC = () => {
               <tbody className="divide-y divide-slate-800/80">
                 {isLoading ? (
                   <tr><td colSpan={6} className="text-center py-8 text-slate-500">Loading classes...</td></tr>
-                ) : classesData?.content.length === 0 ? (
+                ) : !classesData || !classesData.content || classesData.content.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="text-center py-8 text-slate-500">
                       <div className="flex flex-col items-center gap-2">
@@ -435,7 +435,7 @@ export const PlannerPage: React.FC = () => {
                     </td>
                   </tr>
                 ) : (
-                  classesData?.content.map((cl) => {
+                  classesData.content.map((cl) => {
                     const isSelected = selectedClasses.includes(String(cl.id))
                     const isPlanned = plannedSet.has(String(cl.id))
                     return (
