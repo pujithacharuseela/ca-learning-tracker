@@ -27,9 +27,9 @@ export const SidebarContent: React.FC = () => {
   ]
 
   return (
-    <div className="flex h-full flex-col border-r border-slate-800/80 bg-[#0b1329]">
+    <div className="flex h-full flex-col border-r border-[var(--border)] bg-[var(--surface)]">
       {/* Header / Brand */}
-      <div className="flex h-16 items-center px-6 gap-2 border-b border-slate-800/80">
+      <div className="flex h-16 items-center px-6 gap-2 border-b border-[var(--border)]">
         <GraduationCap className="h-6 w-6 text-violet-500" />
         <span className="text-xl font-bold tracking-tight text-slate-100">
           Learning Tracker
@@ -58,7 +58,7 @@ export const SidebarContent: React.FC = () => {
       </div>
 
       {/* Footer Info */}
-      <div className="border-t border-slate-800/80 p-4">
+      <div className="border-t border-[var(--border)] p-4">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-600/20 text-violet-400 font-bold border border-violet-500/20">
             {user ? `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase() : "U"}

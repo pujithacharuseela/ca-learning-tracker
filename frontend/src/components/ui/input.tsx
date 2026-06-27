@@ -7,7 +7,7 @@ const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLI
       <input
         type={type}
         className={cn(
-          'flex h-10 w-full rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950 pr-4 py-2 text-sm text-slate-950 dark:text-slate-50 placeholder:text-slate-400 dark:placeholder:text-slate-500 transition-all duration-200',
+          'flex h-10 w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] pr-4 py-2 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] transition-all duration-200',
           !className?.includes('pl-') && 'pl-4',
           'focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500',
           'hover:border-[var(--border-hover)]',

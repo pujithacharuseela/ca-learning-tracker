@@ -44,42 +44,50 @@ public class ExcelUtils {
 
                 // ClassNo
                 Cell classNoCell = row.getCell(classNoIdx);
-                if (classNoCell != null && classNoCell.getCellType() == CellType.NUMERIC) {
-                    learningClass.setClassNo((int) classNoCell.getNumericCellValue());
-                } else if (classNoCell != null && classNoCell.getCellType() == CellType.STRING) {
-                    learningClass.setClassNo(Integer.parseInt(classNoCell.getStringCellValue().trim()));
-                } else {
-                    throw new IllegalArgumentException("Row " + (i + 1) + ": ClassNo must be a valid number.");
+                String classNoStr = getCellValueAsString(classNoCell).trim();
+                if (classNoStr.isEmpty()) {
+                    throw new IllegalArgumentException("Row " + (i + 1) + ": ClassNo must not be empty.");
+                }
+                try {
+                    // Remove decimals if any (e.g. "1.0" to "1")
+                    if (classNoStr.contains(".")) {
+                        classNoStr = classNoStr.substring(0, classNoStr.indexOf("."));
+                    }
+                    learningClass.setClassNo(Integer.parseInt(classNoStr));
+                } catch (NumberFormatException e) {
+                    throw new IllegalArgumentException("Row " + (i + 1) + ": ClassNo must be a valid integer, found: " + classNoStr);
                 }
 
                 // Topic
                 Cell topicCell = row.getCell(topicIdx);
-                if (topicCell != null && topicCell.getCellType() == CellType.STRING) {
-                    learningClass.setTopic(topicCell.getStringCellValue().trim());
-                } else {
+                String topicStr = getCellValueAsString(topicCell).trim();
+                if (topicStr.isEmpty()) {
                     throw new IllegalArgumentException("Row " + (i + 1) + ": Topic must be a non-empty string.");
                 }
+                learningClass.setTopic(topicStr);
 
                 // Duration (Minutes)
                 Cell durationMinCell = row.getCell(durationMinutesIdx);
+                String durationMinStr = getCellValueAsString(durationMinCell).trim();
                 int durationMinutes = 0;
-                if (durationMinCell != null && durationMinCell.getCellType() == CellType.NUMERIC) {
-                    durationMinutes = (int) durationMinCell.getNumericCellValue();
-                } else if (durationMinCell != null && durationMinCell.getCellType() == CellType.STRING) {
-                    durationMinutes = Integer.parseInt(durationMinCell.getStringCellValue().trim());
+                if (!durationMinStr.isEmpty()) {
+                    try {
+                        if (durationMinStr.contains(".")) {
+                            durationMinStr = durationMinStr.substring(0, durationMinStr.indexOf("."));
+                        }
+                        durationMinutes = Integer.parseInt(durationMinStr);
+                    } catch (NumberFormatException e) {
+                        // ignore and default to 0
+                    }
                 }
                 learningClass.setDurationMinutes(durationMinutes);
 
                 // Duration (Hours + Minutes)
                 Cell durationDisplayCell = row.getCell(durationDisplayIdx);
-                if (durationDisplayCell != null) {
-                    if (durationDisplayCell.getCellType() == CellType.STRING) {
-                        learningClass.setDurationDisplay(durationDisplayCell.getStringCellValue().trim());
-                    } else if (durationDisplayCell.getCellType() == CellType.NUMERIC) {
-                        learningClass.setDurationDisplay(String.valueOf((int) durationDisplayCell.getNumericCellValue()));
-                    }
+                String durationDisplayStr = getCellValueAsString(durationDisplayCell).trim();
+                if (!durationDisplayStr.isEmpty()) {
+                    learningClass.setDurationDisplay(durationDisplayStr);
                 } else {
-                    // Fallback to minutes mapping format
                     learningClass.setDurationDisplay(durationMinutes + " mins");
                 }
 
@@ -87,6 +95,43 @@ public class ExcelUtils {
             }
         }
         return classes;
+    }
+
+    private static String getCellValueAsString(Cell cell) {
+        if (cell == null) {
+            return "";
+        }
+        switch (cell.getCellType()) {
+            case STRING:
+                return cell.getStringCellValue();
+            case NUMERIC:
+                if (DateUtil.isCellDateFormatted(cell)) {
+                    return cell.getDateCellValue().toString();
+                }
+                double val = cell.getNumericCellValue();
+                if (val == (long) val) {
+                    return String.valueOf((long) val);
+                }
+                return String.valueOf(val);
+            case BOOLEAN:
+                return String.valueOf(cell.getBooleanCellValue());
+            case FORMULA:
+                try {
+                    return cell.getStringCellValue();
+                } catch (Exception e) {
+                    try {
+                        double formulaVal = cell.getNumericCellValue();
+                        if (formulaVal == (long) formulaVal) {
+                            return String.valueOf((long) formulaVal);
+                        }
+                        return String.valueOf(formulaVal);
+                    } catch (Exception ex) {
+                        return "";
+                    }
+                }
+            default:
+                return "";
+        }
     }
 
     private static boolean isRowEmpty(Row row) {

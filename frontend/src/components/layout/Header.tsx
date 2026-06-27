@@ -27,7 +27,7 @@ export const Header: React.FC<HeaderProps> = () => {
   }
 
   return (
-    <header className="sticky top-0 z-40 flex h-16 w-full items-center justify-between border-b border-slate-800/80 bg-[#020617]/75 px-4 backdrop-blur-md sm:px-6">
+    <header className="sticky top-0 z-40 flex h-16 w-full items-center justify-between border-b border-[var(--border)] bg-[var(--background)]/75 px-4 backdrop-blur-md sm:px-6">
       <div className="flex items-center gap-4">
         {/* Mobile menu trigger */}
         <Sheet>

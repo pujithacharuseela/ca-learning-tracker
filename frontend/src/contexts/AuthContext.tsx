@@ -25,8 +25,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         const userData = await getProfile()
         setUser(userData)
-      } catch (err) {
-        logOutLocal()
+      } catch (err: any) {
+        if (err.response?.status === 401 || err.response?.status === 403) {
+          logOutLocal()
+        }
       }
     }
     setIsLoading(false)
