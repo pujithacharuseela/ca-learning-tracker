@@ -8,6 +8,7 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 
 const MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"]
 const CURRENT_YEAR = new Date().getFullYear()
@@ -20,6 +21,7 @@ export const CalendarPage: React.FC = () => {
   const [filterType, setFilterType] = useState<"all" | "subject" | "plan">("all")
   const [filterSubjectId, setFilterSubjectId] = useState<string>("")
   const [filterPlanId, setFilterPlanId] = useState<string>("")
+  const [selectedDateClasses, setSelectedDateClasses] = useState<Date | null>(null)
 
   const { data: plans } = useQuery({ queryKey: ["plans"], queryFn: getPlans })
   const { data: subjects } = useQuery({ queryKey: ["subjects"], queryFn: getSubjects })
@@ -264,14 +266,18 @@ export const CalendarPage: React.FC = () => {
               const dailyTasks = getSchedulesForDay(day)
               const todayStr = format(new Date(), "yyyy-MM-dd")
               const isToday = format(day, "yyyy-MM-dd") === todayStr
+              const hasTasks = dailyTasks.length > 0
               return (
                 <div
                   key={idx}
+                  onClick={() => { if (hasTasks) setSelectedDateClasses(day) }}
                   className={`min-h-[110px] border rounded-xl p-2 transition-all duration-200 ${
+                    hasTasks ? "cursor-pointer" : ""
+                  } ${
                     isToday
                       ? "border-violet-500/50 bg-violet-500/5"
-                      : dailyTasks.length > 0
-                      ? "border-slate-700/60 bg-[#070d1e]/60"
+                      : hasTasks
+                      ? "border-slate-700/60 bg-[#070d1e]/60 hover:bg-[#070d1e]/85"
                       : "border-slate-800/40 bg-[#070d1e]/20 hover:bg-[#070d1e]/40"
                   }`}
                 >
@@ -281,8 +287,8 @@ export const CalendarPage: React.FC = () => {
                   <div className="mt-1.5 space-y-1">
                     {isLoading
                       ? null
-                      : dailyTasks.map((task) => (
-                        <div key={task.id} className="relative">
+                      : dailyTasks.slice(0, 2).map((task) => (
+                        <div key={task.id} className="relative" onClick={(e) => e.stopPropagation()}>
                           <button
                             onClick={() => completeMutation.mutate(task.id)}
                             className={`w-full text-left text-[10px] px-1.5 py-1 rounded-lg font-semibold truncate border transition-all ${
@@ -308,6 +314,13 @@ export const CalendarPage: React.FC = () => {
                         </div>
                       ))
                     }
+                    {dailyTasks.length > 2 && (
+                      <div className="text-center">
+                        <span className="text-[9px] font-bold text-violet-400 bg-violet-500/10 px-2 py-0.5 rounded-md inline-block">
+                          + {dailyTasks.length - 2} more
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
               )
@@ -315,6 +328,46 @@ export const CalendarPage: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Classes List Day Dialog */}
+      <Dialog open={!!selectedDateClasses} onOpenChange={(o) => !o && setSelectedDateClasses(null)}>
+        <DialogContent className="sm:max-w-[420px] bg-[#0b1329] border border-slate-800 text-slate-100">
+          <DialogHeader>
+            <DialogTitle>
+              Classes for {selectedDateClasses ? format(selectedDateClasses, "MMMM d, yyyy") : ""}
+            </DialogTitle>
+            <DialogDescription className="text-slate-400">
+              Review and update class completion status.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 py-3 max-h-[350px] overflow-y-auto pr-1">
+            {selectedDateClasses && getSchedulesForDay(selectedDateClasses).map((task) => (
+              <div
+                key={task.id}
+                onClick={() => completeMutation.mutate(task.id)}
+                className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all duration-150 ${
+                  task.status === "COMPLETED"
+                    ? "bg-emerald-500/10 border-emerald-500/20 text-slate-350"
+                    : "bg-slate-900/40 border-slate-800 hover:bg-[#070d1e]"
+                }`}
+              >
+                <div className="flex flex-col gap-0.5 min-w-0 pr-2">
+                  <span className="text-[10px] text-slate-500 font-semibold">{task.planName}</span>
+                  <span className="text-sm font-bold text-slate-200 truncate">C{task.classNo}: {task.topic}</span>
+                  <span className="text-xs text-slate-400">{task.durationDisplay}</span>
+                </div>
+                <div className="shrink-0">
+                  {task.status === "COMPLETED" ? (
+                    <CheckCircle2 className="h-5 w-5 text-emerald-400" />
+                  ) : (
+                    <div className="h-5 w-5 rounded-full border border-slate-700" />
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Legend */}
       <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500">

@@ -259,7 +259,18 @@ export const PlannerPage: React.FC = () => {
                       </Badge>
                     )}
                   </div>
-                  <p className="text-xs text-slate-500 mt-0.5">{plan.startDate} → {plan.endDate}</p>
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5">
+                    <p className="text-xs text-slate-500">{plan.startDate} → {plan.endDate}</p>
+                    <span className="text-xs text-slate-600 font-semibold hidden sm:inline">•</span>
+                    <span className="text-xs text-indigo-400 font-medium bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-md">
+                      {(() => {
+                        const daysLeft = Math.ceil((new Date(plan.endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+                        if (daysLeft > 0) return `⏳ ${daysLeft} days left`
+                        if (daysLeft === 0) return `🚨 Deadline today!`
+                        return `⚠️ Overdue by ${Math.abs(daysLeft)} day(s)`
+                      })()}
+                    </span>
+                  </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge className={plan.status === "ACTIVE" ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" : "bg-slate-500/15 text-slate-400 border-slate-500/30"}>
@@ -384,6 +395,7 @@ export const PlannerPage: React.FC = () => {
                     <Checkbox checked={isAllPageSelected} onCheckedChange={handleSelectAll} />
                   </th>
                   <th className="px-6 py-4">Class No</th>
+                  <th className="px-6 py-4">Subject</th>
                   <th className="px-6 py-4">Topic</th>
                   <th className="px-6 py-4">Duration</th>
                   <th className="px-6 py-4">Status</th>
@@ -391,10 +403,10 @@ export const PlannerPage: React.FC = () => {
               </thead>
               <tbody className="divide-y divide-slate-800/80">
                 {isLoading ? (
-                  <tr><td colSpan={5} className="text-center py-8 text-slate-500">Loading classes...</td></tr>
+                  <tr><td colSpan={6} className="text-center py-8 text-slate-500">Loading classes...</td></tr>
                 ) : classesData?.content.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="text-center py-8 text-slate-500">
+                    <td colSpan={6} className="text-center py-8 text-slate-500">
                       <div className="flex flex-col items-center gap-2">
                         <AlertCircle className="h-8 w-8 text-slate-500" />
                         <span className="text-slate-400">No classes found. Go to Upload Plan page to import schedules.</span>
@@ -420,6 +432,15 @@ export const PlannerPage: React.FC = () => {
                           />
                         </td>
                         <td className="px-6 py-4 font-semibold text-slate-200">{cl.classNo}</td>
+                        <td className="px-6 py-4">
+                          {cl.subject ? (
+                            <Badge style={{ backgroundColor: `${cl.subject.color}20`, color: cl.subject.color, borderColor: `${cl.subject.color}40` }} className="text-[10px] py-0 border">
+                              {cl.subject.name}
+                            </Badge>
+                          ) : (
+                            <span className="text-slate-600 text-xs">—</span>
+                          )}
+                        </td>
                         <td className="px-6 py-4 text-slate-300">{cl.topic}</td>
                         <td className="px-6 py-4 text-slate-400">{cl.durationDisplay}</td>
                         <td className="px-6 py-4">

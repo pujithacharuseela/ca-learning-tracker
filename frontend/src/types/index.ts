@@ -140,6 +140,11 @@ export interface LearningClass {
   durationDisplay: string;
   isActive: boolean;
   createdAt: string;
+  subject?: {
+    id: string;
+    name: string;
+    color: string;
+  };
 }
 
 export interface LearningPlan {

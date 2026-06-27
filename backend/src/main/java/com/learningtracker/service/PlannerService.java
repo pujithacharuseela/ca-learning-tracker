@@ -35,6 +35,7 @@ public class PlannerService {
     private final LearningClassRepository learningClassRepository;
     private final UserRepository userRepository;
     private final SubjectRepository subjectRepository;
+    private final StudySessionRepository studySessionRepository;
 
     @Transactional
     public PlanResponse createPlan(PlanAssignmentRequest request) {
@@ -122,6 +123,28 @@ public class PlannerService {
 
         scheduleRepository.updateStatusById(scheduleId, newStatus);
         schedule.setStatus(newStatus);
+
+        if (newStatus == StudyStatus.COMPLETED) {
+            boolean exists = studySessionRepository.findAll().stream()
+                    .anyMatch(ss -> ss.getSchedule() != null && ss.getSchedule().getId().equals(scheduleId));
+            if (!exists) {
+                StudySession session = new StudySession();
+                session.setUser(schedule.getUser());
+                session.setSchedule(schedule);
+                session.setStatus(StudyStatus.COMPLETED);
+                session.setActualDurationMinutes(schedule.getLearningClass().getDurationMinutes());
+                session.setDifficultyRating(3);
+                session.setOverallRating(4);
+                session.setStartedAt(java.time.LocalDateTime.now().minusMinutes(schedule.getLearningClass().getDurationMinutes()));
+                session.setCompletedAt(java.time.LocalDateTime.now());
+                studySessionRepository.save(session);
+            }
+        } else {
+            studySessionRepository.findAll().stream()
+                    .filter(ss -> ss.getSchedule() != null && ss.getSchedule().getId().equals(scheduleId))
+                    .forEach(studySessionRepository::delete);
+        }
+
         return mapToScheduleResponse(schedule);
     }
 
