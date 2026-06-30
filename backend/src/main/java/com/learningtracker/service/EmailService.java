@@ -1,8 +1,8 @@
 package com.learningtracker.service;
 
 import com.learningtracker.entity.User;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -18,19 +18,17 @@ import java.util.Map;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class EmailService {
 
     private final JavaMailSender mailSender;
     private final TemplateEngine templateEngine;
 
-    public EmailService(JavaMailSender mailSender,
-                        @Qualifier("emailTemplateEngine") TemplateEngine templateEngine) {
-        this.mailSender = mailSender;
-        this.templateEngine = templateEngine;
-    }
-
     @Value("${spring.mail.username}")
     private String fromEmail;
+
+    @Value("${app.brevo.api-key:}")
+    private String brevoApiKey;
 
     @Value("${app.frontend-url:http://localhost:5173}")
     private String frontendUrl;
@@ -88,24 +86,113 @@ public class EmailService {
 
     private void sendHtmlEmail(String to, String subject, String templateName, Map<String, Object> variables) {
         try {
-            MimeMessage mimeMessage = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
-
             Context context = new Context();
             context.setVariables(variables);
             String htmlContent = templateEngine.process(templateName, context);
 
-            helper.setFrom(fromEmail);
-            helper.setTo(to);
-            helper.setSubject(subject);
-            helper.setText(htmlContent, true);
+            // If Brevo API key is not configured, fall back to JavaMailSender if configured, or log warning
+            String apiKey = System.getenv("BREVO_API_KEY");
+            if (apiKey == null || apiKey.trim().isEmpty()) {
+                apiKey = brevoApiKey;
+            }
 
-            mailSender.send(mimeMessage);
-            log.info("Email sent successfully to: {} with template: {}", to, templateName);
-        } catch (MessagingException e) {
-            log.error("Failed to send email to: {}, error: {}", to, e.getMessage(), e);
+            if (apiKey != null && !apiKey.trim().isEmpty()) {
+                sendViaBrevo(to, subject, htmlContent, apiKey);
+            } else {
+                log.warn("Brevo API Key not configured. Attempting fallback to SMTP...");
+                sendViaSmtp(to, subject, htmlContent);
+            }
         } catch (Exception e) {
-            log.error("Unexpected error sending email to: {}, error: {}", to, e.getMessage(), e);
+            log.error("Unexpected error preparing email to: {}, error: {}", to, e.getMessage(), e);
         }
+    }
+
+    private void sendViaBrevo(String to, String subject, String htmlContent, String apiKey) throws Exception {
+        java.net.URL url = new java.net.URL("https://api.brevo.com/v3/smtp/email");
+        java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty("api-key", apiKey);
+        conn.setRequestProperty("Content-Type", "application/json");
+        conn.setRequestProperty("Accept", "application/json");
+        conn.setDoOutput(true);
+
+        String jsonPayload = String.format(
+            "{\"sender\":{\"name\":\"Learning Tracker\",\"email\":\"%s\"}," +
+            "\"to\":[{\"email\":\"%s\"}]," +
+            "\"subject\":\"%s\"," +
+            "\"htmlContent\":\"%s\"}",
+            fromEmail, to, escapeJson(subject), escapeJson(htmlContent)
+        );
+
+        try (java.io.OutputStream os = conn.getOutputStream()) {
+            byte[] input = jsonPayload.getBytes("utf-8");
+            os.write(input, 0, input.length);
+        }
+
+        int responseCode = conn.getResponseCode();
+        if (responseCode >= 200 && responseCode < 300) {
+            log.info("Email sent successfully via Brevo HTTP API to: {}", to);
+        } else {
+            try (java.io.BufferedReader br = new java.io.BufferedReader(new java.io.InputStreamReader(conn.getErrorStream(), "utf-8"))) {
+                StringBuilder response = new StringBuilder();
+                String responseLine;
+                while ((responseLine = br.readLine()) != null) {
+                    response.append(responseLine.trim());
+                }
+                log.error("Failed to send email via Brevo HTTP API. Response Code: {}, Response: {}", responseCode, response.toString());
+            }
+        }
+    }
+
+    private void sendViaSmtp(String to, String subject, String htmlContent) throws MessagingException {
+        MimeMessage mimeMessage = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+        helper.setFrom(fromEmail);
+        helper.setTo(to);
+        helper.setSubject(subject);
+        helper.setText(htmlContent, true);
+        mailSender.send(mimeMessage);
+        log.info("Email sent successfully via SMTP fallback to: {}", to);
+    }
+
+    private String escapeJson(String input) {
+        if (input == null) {
+            return "";
+        }
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < input.length(); i++) {
+            char ch = input.charAt(i);
+            switch (ch) {
+                case '"':
+                    sb.append("\\\"");
+                    break;
+                case '\\':
+                    sb.append("\\\\");
+                    break;
+                case '\b':
+                    sb.append("\\b");
+                    break;
+                case '\f':
+                    sb.append("\\f");
+                    break;
+                case '\n':
+                    sb.append("\\n");
+                    break;
+                case '\r':
+                    sb.append("\\r");
+                    break;
+                case '\t':
+                    sb.append("\\t");
+                    break;
+                default:
+                    if (ch < ' ') {
+                        String t = "000" + Integer.toHexString(ch);
+                        sb.append("\\u" + t.substring(t.length() - 4));
+                    } else {
+                        sb.append(ch);
+                    }
+            }
+        }
+        return sb.toString();
     }
 }
