@@ -154,13 +154,13 @@ export const CalendarPage: React.FC = () => {
 
     sortedDates.forEach((dateStr) => {
       const dayData = dateMap[dateStr]
-      if (dayData.completed === dayData.total && dayData.total > 0) {
+      if (dayData && dayData.completed === dayData.total && dayData.total > 0) {
         activeDays++
         currentStreak++
         if (currentStreak > maxStreak) {
           maxStreak = currentStreak
         }
-      } else if (dayData.completed > 0) {
+      } else if (dayData && dayData.completed > 0) {
         // Partial completion resets streak but still counts as activity
         currentStreak = 0
       } else {
