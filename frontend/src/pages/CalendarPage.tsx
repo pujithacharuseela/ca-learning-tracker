@@ -128,6 +128,49 @@ export const CalendarPage: React.FC = () => {
     })
   }
 
+  const streakStats = useMemo(() => {
+    if (!filteredSchedules || filteredSchedules.length === 0) {
+      return { maxStreak: 0, activeDays: 0 }
+    }
+
+    const dateMap: { [date: string]: { total: number; completed: number } } = {}
+    filteredSchedules.forEach((s) => {
+      const dateStr = typeof s.scheduledDate === "string"
+        ? s.scheduledDate
+        : format(new Date(s.scheduledDate), "yyyy-MM-dd")
+      if (!dateMap[dateStr]) {
+        dateMap[dateStr] = { total: 0, completed: 0 }
+      }
+      dateMap[dateStr].total++
+      if (s.status === "COMPLETED") {
+        dateMap[dateStr].completed++
+      }
+    })
+
+    const sortedDates = Object.keys(dateMap).sort()
+    let maxStreak = 0
+    let currentStreak = 0
+    let activeDays = 0
+
+    sortedDates.forEach((dateStr) => {
+      const dayData = dateMap[dateStr]
+      if (dayData.completed === dayData.total && dayData.total > 0) {
+        activeDays++
+        currentStreak++
+        if (currentStreak > maxStreak) {
+          maxStreak = currentStreak
+        }
+      } else if (dayData.completed > 0) {
+        // Partial completion resets streak but still counts as activity
+        currentStreak = 0
+      } else {
+        currentStreak = 0
+      }
+    })
+
+    return { maxStreak, activeDays }
+  }, [filteredSchedules])
+
   const completedCount = filteredSchedules.filter((s) => s.status === "COMPLETED").length
   const totalCount = filteredSchedules.length
 
@@ -173,6 +216,49 @@ export const CalendarPage: React.FC = () => {
             </SelectContent>
           </Select>
         </div>
+      </div>
+
+      {/* LeetCode-style Stats Panel */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card className="border-slate-800/60 bg-[#0b1329]/40 backdrop-blur-md">
+          <CardContent className="p-5 flex items-center justify-between">
+            <div>
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Longest Streak</p>
+              <h3 className="text-2xl font-black text-amber-400 mt-1 flex items-center gap-1.5">
+                🔥 {streakStats.maxStreak} {streakStats.maxStreak === 1 ? "Day" : "Days"}
+              </h3>
+            </div>
+            <div className="h-10 w-10 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-400">
+              ⚡
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-slate-800/60 bg-[#0b1329]/40 backdrop-blur-md">
+          <CardContent className="p-5 flex items-center justify-between">
+            <div>
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Perfect Study Days</p>
+              <h3 className="text-2xl font-black text-emerald-400 mt-1">
+                ✅ {streakStats.activeDays} {streakStats.activeDays === 1 ? "Day" : "Days"}
+              </h3>
+            </div>
+            <div className="h-10 w-10 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400">
+              🎯
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-slate-800/60 bg-[#0b1329]/40 backdrop-blur-md">
+          <CardContent className="p-5 flex items-center justify-between">
+            <div>
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Overall Completion</p>
+              <h3 className="text-2xl font-black text-violet-400 mt-1">
+                📈 {totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0}%
+              </h3>
+            </div>
+            <div className="h-10 w-10 rounded-lg bg-violet-500/10 flex items-center justify-center text-violet-400">
+              📊
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Filters Bar */}
@@ -287,6 +373,12 @@ export const CalendarPage: React.FC = () => {
               const todayStr = format(new Date(), "yyyy-MM-dd")
               const isToday = format(day, "yyyy-MM-dd") === todayStr
               const hasTasks = dailyTasks.length > 0
+              const completedTasks = dailyTasks.filter((t) => t.status === "COMPLETED").length
+              
+              // LeetCode-style activity indicators
+              const allCompleted = hasTasks && completedTasks === dailyTasks.length
+              const partiallyCompleted = hasTasks && completedTasks > 0 && completedTasks < dailyTasks.length
+
               return (
                 <div
                   key={idx}
@@ -295,7 +387,11 @@ export const CalendarPage: React.FC = () => {
                     hasTasks ? "cursor-pointer" : ""
                   } ${
                     isToday
-                      ? "border-violet-500/50 bg-violet-500/5"
+                      ? "border-violet-500 bg-violet-950/20 shadow-md shadow-violet-500/5"
+                      : allCompleted
+                      ? "border-emerald-500/40 bg-emerald-950/15 hover:bg-emerald-950/25"
+                      : partiallyCompleted
+                      ? "border-emerald-700/25 bg-emerald-950/5 hover:bg-emerald-950/10"
                       : hasTasks
                       ? "border-slate-700/60 bg-[#070d1e]/60 hover:bg-[#070d1e]/85"
                       : "border-slate-800/40 bg-[#070d1e]/20 hover:bg-[#070d1e]/40"
@@ -409,18 +505,27 @@ export const CalendarPage: React.FC = () => {
       </Dialog>
 
       {/* Legend */}
-      <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500">
-        <span className="flex items-center gap-1.5"><Clock className="h-3 w-3" /> Scheduled (hover → ✓ to complete)</span>
-        <span className="flex items-center gap-1.5"><CheckCircle2 className="h-3 w-3 text-emerald-400" /> Completed (hover → ↩ to undo)</span>
+      <div className="flex flex-wrap items-center justify-between gap-4 text-xs text-slate-500 border-t border-slate-800/40 pt-4">
+        <div className="flex flex-wrap items-center gap-4">
+          <span className="flex items-center gap-1.5"><Clock className="h-3 w-3" /> Scheduled (click to toggle)</span>
+          <span className="flex items-center gap-1.5"><CheckCircle2 className="h-3 w-3 text-emerald-400" /> Completed</span>
+          <span className="flex items-center gap-2">
+            Activity level:
+            <span className="h-3 w-3 rounded bg-[#070d1e]/20 border border-slate-800/40" title="No study task scheduled" />
+            <span className="h-3 w-3 rounded bg-[#070d1e]/60 border border-slate-700/60" title="Tasks scheduled, 0% complete" />
+            <span className="h-3 w-3 rounded bg-emerald-950/5 border border-emerald-700/25" title="Partially completed" />
+            <span className="h-3 w-3 rounded bg-emerald-950/15 border border-emerald-500/40" title="Fully completed day (Active Streak)" />
+          </span>
+        </div>
         {plans && plans.length > 0 && (
-          <span className="flex items-center gap-2 ml-auto">
+          <div className="flex items-center gap-2">
             {plans.slice(0, 5).map((p) => (
-              <span key={p.id} className="flex items-center gap-1">
-                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: p.subjectColor || "#8b5cf6" }} />
-                <span>{p.name}</span>
+              <span key={p.id} className="flex items-center gap-1.5">
+                <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: p.subjectColor || "#8b5cf6" }} />
+                <span className="text-[11px]">{p.name}</span>
               </span>
             ))}
-          </span>
+          </div>
         )}
       </div>
     </div>
