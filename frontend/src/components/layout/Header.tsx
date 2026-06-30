@@ -284,10 +284,10 @@ export const Header: React.FC<HeaderProps> = () => {
               )}
             </div>
             <div className="max-h-[300px] overflow-y-auto py-1 space-y-1 mt-1">
-              {notifications.length === 0 ? (
-                <p className="text-xs text-slate-500 text-center py-6">No new notifications.</p>
+              {notifications.filter(n => !n.read).length === 0 ? (
+                <p className="text-xs text-slate-500 text-center py-6 font-medium">No new notifications.</p>
               ) : (
-                notifications.map((notif) => (
+                notifications.filter(n => !n.read).map((notif) => (
                   <div
                     key={notif.id}
                     className={`p-2.5 rounded-lg text-xs transition-colors border ${
