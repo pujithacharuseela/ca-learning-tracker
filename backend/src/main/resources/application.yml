@@ -36,13 +36,13 @@ spring:
   # ---- Mail ----
   mail:
     host: smtp.gmail.com
-    port: 587
+    port: 465
     username: ${MAIL_USERNAME:placeholder@gmail.com}
     password: ${MAIL_PASSWORD:placeholderpassword}
     properties:
       mail.smtp.auth: true
-      mail.smtp.starttls.enable: true
-      mail.smtp.starttls.required: true
+      mail.smtp.ssl.enable: true
+      mail.smtp.ssl.required: true
       mail.smtp.connectiontimeout: 5000
       mail.smtp.timeout: 5000
       mail.smtp.writetimeout: 5000
