@@ -80,3 +80,6 @@ logging:
   level:
     root: INFO
     com.learningtracker: INFO
+    com.learningtracker.service.EmailService: DEBUG
+    com.learningtracker.scheduler: DEBUG
+    org.springframework.mail: DEBUG

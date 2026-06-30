@@ -99,6 +99,8 @@ public class EmailService {
             log.info("Email sent successfully to: {} with template: {}", to, templateName);
         } catch (MessagingException e) {
             log.error("Failed to send email to: {}, error: {}", to, e.getMessage(), e);
+        } catch (Exception e) {
+            log.error("Unexpected error sending email to: {}, error: {}", to, e.getMessage(), e);
         }
     }
 }
