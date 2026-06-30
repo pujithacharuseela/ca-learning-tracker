@@ -128,6 +128,43 @@ export const CalendarPage: React.FC = () => {
     })
   }
 
+  // Calculate YTD days and weeks for the LeetCode heat map
+  const yearDays = useMemo(() => {
+    const start = new Date(year, 0, 1)
+    const end = new Date(year, 11, 31)
+    return eachDayOfInterval({ start, end })
+  }, [year])
+
+  const weeks = useMemo(() => {
+    const result: Date[][] = []
+    let currentWeek: Date[] = []
+
+    const firstDay = yearDays[0]
+    if (firstDay) {
+      const startDayOfWeek = firstDay.getDay()
+      for (let i = 0; i < startDayOfWeek; i++) {
+        currentWeek.push(null as any)
+      }
+    }
+
+    yearDays.forEach((day) => {
+      currentWeek.push(day)
+      if (currentWeek.length === 7) {
+        result.push(currentWeek)
+        currentWeek = []
+      }
+    })
+
+    if (currentWeek.length > 0) {
+      while (currentWeek.length < 7) {
+        currentWeek.push(null as any)
+      }
+      result.push(currentWeek)
+    }
+
+    return result
+  }, [yearDays])
+
   const streakStats = useMemo(() => {
     if (!filteredSchedules || filteredSchedules.length === 0) {
       return { maxStreak: 0, activeDays: 0 }
@@ -260,6 +297,73 @@ export const CalendarPage: React.FC = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* LeetCode Heat Map Panel */}
+      <Card className="border-slate-800/60 bg-[#0b1329]/40 backdrop-blur-md">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-semibold text-slate-200 uppercase tracking-wider flex items-center justify-between">
+            <span>Annual Activity Map ({year})</span>
+            <span className="text-[11px] text-slate-400 normal-case font-normal">Hover squares to view daily completion details</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="overflow-x-auto">
+          <div className="flex flex-col gap-2 min-w-[720px] py-2">
+            <div className="flex gap-1">
+              {/* Row labels */}
+              <div className="flex flex-col justify-between text-[9.5px] text-slate-500 w-8 pr-2 pt-1 h-[81px] font-semibold">
+                <span>Sun</span>
+                <span>Tue</span>
+                <span>Thu</span>
+                <span>Sat</span>
+              </div>
+              
+              {/* Grid representation */}
+              <div className="flex gap-[3px]">
+                {weeks.map((week, wIdx) => (
+                  <div key={wIdx} className="flex flex-col gap-[3px]">
+                    {week.map((day, dIdx) => {
+                      if (!day) {
+                        return <div key={dIdx} className="h-[9px] w-[9px] bg-transparent" />
+                      }
+                      const dayTasks = getSchedulesForDay(day)
+                      const hasTasks = dayTasks.length > 0
+                      const completedCount = dayTasks.filter(t => t.status === "COMPLETED").length
+                      
+                      const allCompleted = hasTasks && completedCount === dayTasks.length
+                      const partiallyCompleted = hasTasks && completedCount > 0 && completedCount < dayTasks.length
+
+                      return (
+                        <div
+                          key={dIdx}
+                          className={`h-[9px] w-[9px] rounded-[1.5px] transition-colors duration-150 ${
+                            allCompleted
+                              ? "bg-emerald-500"
+                              : partiallyCompleted
+                              ? "bg-emerald-700/50"
+                              : hasTasks
+                              ? "bg-slate-700"
+                              : "bg-slate-800/35"
+                          }`}
+                          title={`${format(day, "MMM d, yyyy")}: ${completedCount}/${dayTasks.length} Completed`}
+                        />
+                      )
+                    })}
+                  </div>
+                ))}
+              </div>
+            </div>
+            {/* Color key legend */}
+            <div className="flex items-center gap-1.5 text-[10px] text-slate-500 self-end pr-2 font-medium">
+              <span>Less</span>
+              <div className="h-[9px] w-[9px] rounded-[1.5px] bg-slate-800/35" title="No tasks scheduled" />
+              <div className="h-[9px] w-[9px] rounded-[1.5px] bg-slate-700" title="Tasks scheduled, 0% complete" />
+              <div className="h-[9px] w-[9px] rounded-[1.5px] bg-emerald-700/50" title="Partially completed" />
+              <div className="h-[9px] w-[9px] rounded-[1.5px] bg-emerald-500" title="Fully completed day" />
+              <span>More</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Filters Bar */}
       <Card className="border-slate-800/60 bg-[#0b1329]/40">
