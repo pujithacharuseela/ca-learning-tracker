@@ -332,18 +332,18 @@ export const CalendarPage: React.FC = () => {
                       const allCompleted = hasTasks && completedCount === dayTasks.length
                       const partiallyCompleted = hasTasks && completedCount > 0 && completedCount < dayTasks.length
 
+                       const getSquareColor = () => {
+                        if (allCompleted) return "#10b981" // Emerald-500
+                        if (partiallyCompleted) return "#047857" // Emerald-700
+                        if (hasTasks) return "#475569" // Slate-600 (Scheduled but 0%)
+                        return "#1e293b" // Slate-800 (No tasks)
+                      }
+
                       return (
                         <div
                           key={dIdx}
-                          className={`h-[9px] w-[9px] rounded-[1.5px] transition-colors duration-150 ${
-                            allCompleted
-                              ? "bg-emerald-500"
-                              : partiallyCompleted
-                              ? "bg-emerald-700/50"
-                              : hasTasks
-                              ? "bg-slate-700"
-                              : "bg-slate-800/35"
-                          }`}
+                          className="h-[9px] w-[9px] rounded-[1.5px] transition-colors duration-150 border border-slate-900/10"
+                          style={{ backgroundColor: getSquareColor() }}
                           title={`${format(day, "MMM d, yyyy")}: ${completedCount}/${dayTasks.length} Completed`}
                         />
                       )
@@ -355,10 +355,10 @@ export const CalendarPage: React.FC = () => {
             {/* Color key legend */}
             <div className="flex items-center gap-1.5 text-[10px] text-slate-500 self-end pr-2 font-medium">
               <span>Less</span>
-              <div className="h-[9px] w-[9px] rounded-[1.5px] bg-slate-800/35" title="No tasks scheduled" />
-              <div className="h-[9px] w-[9px] rounded-[1.5px] bg-slate-700" title="Tasks scheduled, 0% complete" />
-              <div className="h-[9px] w-[9px] rounded-[1.5px] bg-emerald-700/50" title="Partially completed" />
-              <div className="h-[9px] w-[9px] rounded-[1.5px] bg-emerald-500" title="Fully completed day" />
+              <div className="h-[9px] w-[9px] rounded-[1.5px] border border-slate-900/10" style={{ backgroundColor: "#1e293b" }} title="No tasks scheduled" />
+              <div className="h-[9px] w-[9px] rounded-[1.5px] border border-slate-900/10" style={{ backgroundColor: "#475569" }} title="Tasks scheduled, 0% complete" />
+              <div className="h-[9px] w-[9px] rounded-[1.5px] border border-slate-900/10" style={{ backgroundColor: "#047857" }} title="Partially completed" />
+              <div className="h-[9px] w-[9px] rounded-[1.5px] border border-slate-900/10" style={{ backgroundColor: "#10b981" }} title="Fully completed day" />
               <span>More</span>
             </div>
           </div>
@@ -615,10 +615,10 @@ export const CalendarPage: React.FC = () => {
           <span className="flex items-center gap-1.5"><CheckCircle2 className="h-3 w-3 text-emerald-400" /> Completed</span>
           <span className="flex items-center gap-2">
             Activity level:
-            <span className="h-3 w-3 rounded bg-[#070d1e]/20 border border-slate-800/40" title="No study task scheduled" />
-            <span className="h-3 w-3 rounded bg-[#070d1e]/60 border border-slate-700/60" title="Tasks scheduled, 0% complete" />
-            <span className="h-3 w-3 rounded bg-emerald-950/5 border border-emerald-700/25" title="Partially completed" />
-            <span className="h-3 w-3 rounded bg-emerald-950/15 border border-emerald-500/40" title="Fully completed day (Active Streak)" />
+            <span className="h-3 w-3 rounded border border-slate-800/80" style={{ backgroundColor: "#1e293b" }} title="No study task scheduled" />
+            <span className="h-3 w-3 rounded border border-slate-700/80" style={{ backgroundColor: "#475569" }} title="Tasks scheduled, 0% complete" />
+            <span className="h-3 w-3 rounded border border-emerald-800/40" style={{ backgroundColor: "#047857" }} title="Partially completed" />
+            <span className="h-3 w-3 rounded border border-emerald-500/40" style={{ backgroundColor: "#10b981" }} title="Fully completed day (Active Streak)" />
           </span>
         </div>
         {plans && plans.length > 0 && (
