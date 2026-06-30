@@ -1,5 +1,6 @@
 package com.learningtracker.service;
 
+import com.learningtracker.entity.LearningClass;
 import com.learningtracker.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +14,9 @@ import org.thymeleaf.context.Context;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -52,13 +55,24 @@ public class EmailService {
     }
 
     @Async
-    public void sendPlanScheduledEmail(User user, String planName, String startDate, String endDate, String subjectName) {
+    public void sendPlanScheduledEmail(User user, String planName, String startDate, String endDate, String subjectName, List<LearningClass> classes) {
         Map<String, Object> variables = new HashMap<>();
         variables.put("firstName", user.getFirstName());
         variables.put("planName", planName);
         variables.put("startDate", startDate);
         variables.put("endDate", endDate);
         variables.put("subjectName", subjectName != null ? subjectName : "General Study");
+
+        List<Map<String, Object>> classList = new ArrayList<>();
+        if (classes != null) {
+            for (LearningClass c : classes) {
+                Map<String, Object> map = new HashMap<>();
+                map.put("topic", c.getTopic());
+                map.put("duration", c.getDurationDisplay() != null ? c.getDurationDisplay() : (c.getDurationMinutes() + " mins"));
+                classList.add(map);
+            }
+        }
+        variables.put("classes", classList);
 
         sendHtmlEmail(user.getEmail(), "Study Plan Scheduled Successfully!", "mail/plan_scheduled", variables);
     }

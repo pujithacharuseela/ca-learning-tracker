@@ -69,13 +69,16 @@ public class PlannerService {
 
         distributeClasses(user, plan, classIds, request.getStartDate(), request.getEndDate());
 
+        List<LearningClass> selectedClasses = learningClassRepository.findAllById(classIds);
+
         try {
             emailService.sendPlanScheduledEmail(
                 user,
                 plan.getName(),
                 plan.getStartDate().toString(),
                 plan.getEndDate().toString(),
-                plan.getSubject() != null ? plan.getSubject().getName() : null
+                plan.getSubject() != null ? plan.getSubject().getName() : null,
+                selectedClasses
             );
         } catch (Exception e) {
             // Log warning but don't fail plan creation if email fails

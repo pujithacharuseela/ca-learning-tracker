@@ -73,11 +73,11 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Plan Scheduled successfully</h1>
+            <h1>Plan Scheduled Successfully</h1>
         </div>
         <div class="content">
             <p>Hi <span th:text="${firstName}">User</span>,</p>
-            <p>Your study plan has been successfully scheduled and distributed! Here are the plan details:</p>
+            <p>Your study plan has been successfully scheduled and distributed. Here are your learning plan details:</p>
             
             <div class="plan-box">
                 <p class="plan-title" th:text="${planName}">Mathematics Masterclass</p>
@@ -87,9 +87,27 @@
                 </p>
             </div>
             
-            <p>You can check your detailed calendar and daily checklist on your planner tab.</p>
-            <p>Keep study streaks consistent to unlock premium achievements!</p>
-            <p>Best of luck!</p>
+            <div th:if="${classes != null and !classes.isEmpty()}" style="margin-top: 24px; margin-bottom: 24px;">
+                <p style="font-weight: 700; color: #1E293B; margin-bottom: 12px; font-size: 16px;">Scheduled Lessons:</p>
+                <table style="width: 100%; border-collapse: collapse; font-size: 14px; text-align: left;">
+                    <thead>
+                        <tr style="background-color: #F8FAFC;">
+                            <th style="padding: 12px 8px; border-bottom: 2px solid #E2E8F0; color: #475569; font-weight: 600;">Topic</th>
+                            <th style="padding: 12px 8px; border-bottom: 2px solid #E2E8F0; color: #475569; font-weight: 600; width: 120px; text-align: right;">Duration</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="c : ${classes}" style="border-bottom: 1px solid #F1F5F9;">
+                            <td style="padding: 12px 8px; color: #334155;" th:text="${c.topic}">Introduction to Calculus</td>
+                            <td style="padding: 12px 8px; color: #64748B; text-align: right;" th:text="${c.duration}">1h 30m</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <p>You can view your detailed calendar and track your daily progress in the app under the Planner tab.</p>
+            <p>Maintain your daily study streaks to unlock exclusive achievements!</p>
+            <p>We wish you the best of luck with your studies.</p>
         </div>
         <div class="footer">
             &copy; 2026 Personal Learning Tracker. All rights reserved.
