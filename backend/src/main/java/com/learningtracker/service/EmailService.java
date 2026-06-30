@@ -90,16 +90,21 @@ public class EmailService {
             context.setVariables(variables);
             String htmlContent = templateEngine.process(templateName, context);
 
-            // If Brevo API key is not configured, fall back to JavaMailSender if configured, or log warning
+            // Use SMTP as primary, fall back to Brevo if BREVO_API_KEY is configured and SMTP fails
             String apiKey = System.getenv("BREVO_API_KEY");
             if (apiKey == null || apiKey.trim().isEmpty()) {
                 apiKey = brevoApiKey;
             }
 
             if (apiKey != null && !apiKey.trim().isEmpty()) {
-                sendViaBrevo(to, subject, htmlContent, apiKey);
+                try {
+                    log.info("Attempting primary email delivery via SMTP...");
+                    sendViaSmtp(to, subject, htmlContent);
+                } catch (Exception e) {
+                    log.warn("SMTP email delivery failed, falling back to Brevo. Error: {}", e.getMessage());
+                    sendViaBrevo(to, subject, htmlContent, apiKey);
+                }
             } else {
-                log.warn("Brevo API Key not configured. Attempting fallback to SMTP...");
                 sendViaSmtp(to, subject, htmlContent);
             }
         } catch (Exception e) {
