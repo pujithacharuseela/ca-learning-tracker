@@ -41,13 +41,15 @@ export const Header: React.FC<HeaderProps> = () => {
     const fetchNotifications = async () => {
       try {
         const list = []
+        const storedReadIds = JSON.parse(localStorage.getItem("read_notification_ids") || "[]")
+
         // 1. Welcoming Notification
         list.push({
           id: "welcome",
-          text: "Welcome to CA Learning Tracker! Set up your subjects and upload your planner to begin.",
+          text: "Welcome to CA Learning Tracker! Set up your papers and upload your study planner to begin.",
           time: "Just now",
           type: "welcome",
-          read: false
+          read: storedReadIds.includes("welcome")
         })
 
         // 2. Fetch Plans to show Scheduled Notifications
@@ -55,12 +57,13 @@ export const Header: React.FC<HeaderProps> = () => {
           const plansRes = await apiClient.get('/planner/plans')
           if (plansRes.data && Array.isArray(plansRes.data)) {
             plansRes.data.forEach((plan: any) => {
+              const id = `plan-${plan.id}`
               list.push({
-                id: `plan-${plan.id}`,
-                text: `📅 Plan Scheduled: "${plan.name}" starts on ${plan.startDate}. Subject: ${plan.subjectName || "None"}`,
+                id,
+                text: `📅 Study Plan Scheduled: "${plan.name}" starts on ${plan.startDate}. Subject: ${plan.subjectName || "None"}`,
                 time: "Recently",
                 type: "plan",
-                read: false
+                read: storedReadIds.includes(id)
               })
             })
           }
@@ -89,37 +92,41 @@ export const Header: React.FC<HeaderProps> = () => {
               if (task.status !== "COMPLETED") {
                 if (diffMinutes > 0) {
                   if (diffMinutes <= 180 && diffMinutes > 120) {
+                    const id = `rem-3h-${task.id}`
                     list.push({
-                      id: `rem-3h-${task.id}`,
-                      text: `⏰ Reminder: Class "C${task.classNo}: ${task.topic}" is due in less than 3 hours!`,
+                      id,
+                      text: `⏰ Reminder: Lecture "L${task.classNo}: ${task.topic}" is due in less than 3 hours!`,
                       time: "3 hours left",
                       type: "reminder",
-                      read: false
+                      read: storedReadIds.includes(id)
                     })
                   } else if (diffMinutes <= 60 && diffMinutes > 30) {
+                    const id = `rem-1h-${task.id}`
                     list.push({
-                      id: `rem-1h-${task.id}`,
-                      text: `⏰ Urgent Reminder: Class "C${task.classNo}: ${task.topic}" is due in less than 1 hour!`,
+                      id,
+                      text: `⏰ Urgent Reminder: Lecture "L${task.classNo}: ${task.topic}" is due in less than 1 hour!`,
                       time: "1 hour left",
                       type: "reminder",
-                      read: false
+                      read: storedReadIds.includes(id)
                     })
                   } else if (diffMinutes <= 30 && diffMinutes > 0) {
+                    const id = `rem-30m-${task.id}`
                     list.push({
-                      id: `rem-30m-${task.id}`,
-                      text: `🚨 Final Reminder: Class "C${task.classNo}: ${task.topic}" is due in ${diffMinutes} minutes!`,
+                      id,
+                      text: `🚨 Final Reminder: Lecture "L${task.classNo}: ${task.topic}" is due in ${diffMinutes} minutes!`,
                       time: `${diffMinutes}m left`,
                       type: "reminder",
-                      read: false
+                      read: storedReadIds.includes(id)
                     })
                   }
                 } else {
+                  const id = `rem-overdue-${task.id}`
                   list.push({
-                    id: `rem-overdue-${task.id}`,
-                    text: `⚠️ Overdue: Class "C${task.classNo}: ${task.topic}" deadline missed today!`,
+                    id,
+                    text: `⚠️ Overdue: Lecture "L${task.classNo}: ${task.topic}" deadline missed today!`,
                     time: "Overdue",
                     type: "reminder",
-                    read: false
+                    read: storedReadIds.includes(id)
                   })
                 }
               }
@@ -137,31 +144,34 @@ export const Header: React.FC<HeaderProps> = () => {
           if (res.data) {
             const currentStreak = res.data.currentStreak || 0
             if (currentStreak > 0) {
+              const id1 = "streak-active"
               list.push({
-                id: "streak-active",
+                id: id1,
                 text: `🔥 Study Streak: You are on a ${currentStreak}-day streak! Keep studying to maintain it.`,
                 time: "Today",
                 type: "streak",
-                read: false
+                read: storedReadIds.includes(id1)
               })
               
               const currentHour = new Date().getHours()
               if (hasPendingToday && currentHour >= 18) {
+                const id2 = "streak-warning"
                 list.push({
-                  id: "streak-warning",
-                  text: `⚠️ Streak Warning: You have pending classes today! Complete them before midnight to keep your streak alive.`,
+                  id: id2,
+                  text: `⚠️ Streak Warning: You have pending lectures today! Complete them before midnight to keep your streak alive.`,
                   time: "Action needed",
                   type: "streak",
-                  read: false
+                  read: storedReadIds.includes(id2)
                 })
               }
             } else if (res.data.longestStreak > 0) {
+              const id3 = "streak-missed"
               list.push({
-                id: "streak-missed",
-                text: `💔 Streak Missed: You missed your daily study streak. Complete your scheduled classes today to start a new streak!`,
+                id: id3,
+                text: `💔 Streak Missed: You missed your daily study streak. Complete your scheduled lectures today to start a new streak!`,
                 time: "Streak Missed",
                 type: "streak",
-                read: false
+                read: storedReadIds.includes(id3)
               })
             }
           }
@@ -174,12 +184,13 @@ export const Header: React.FC<HeaderProps> = () => {
           const res = await apiClient.get('/gamification/achievements')
           if (res.data && Array.isArray(res.data)) {
             res.data.forEach((ach: any, idx: number) => {
+              const id = `ach-${idx}`
               list.push({
-                id: `ach-${idx}`,
+                id,
                 text: `🏆 Achievement Unlocked: "${ach.badge?.displayName || 'Earned Badge'}" - ${ach.badge?.description || ''}`,
                 time: ach.earnedAt ? new Date(ach.earnedAt).toLocaleDateString() : "Recently",
                 type: "achievement",
-                read: false
+                read: storedReadIds.includes(id)
               })
             })
           }
@@ -201,7 +212,12 @@ export const Header: React.FC<HeaderProps> = () => {
   const unreadCount = notifications.filter(n => !n.read).length
 
   const markAllRead = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })))
+    setNotifications(prev => {
+      const updated = prev.map(n => ({ ...n, read: true }))
+      const allIds = updated.map(n => n.id)
+      localStorage.setItem("read_notification_ids", JSON.stringify(allIds))
+      return updated
+    })
     toast.success("All notifications marked as read!")
   }
 
