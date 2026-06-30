@@ -225,9 +225,9 @@ export const CalendarPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-slate-100">Calendar</h1>
+          <h1 className="text-3xl font-extrabold tracking-tight text-slate-100">Study Calendar</h1>
           <p className="text-slate-400 text-sm mt-1">
-            All your study schedules in one place • <span className="text-violet-400 font-semibold">Tip: Click any class to toggle complete/incomplete</span>
+            All your study schedules in one place • <span className="text-violet-400 font-semibold">Tip: Click any lecture/chapter to toggle its study status</span>
           </p>
         </div>
         {/* Month + Year Pickers */}
@@ -521,14 +521,14 @@ export const CalendarPage: React.FC = () => {
                               borderColor: task.status === "COMPLETED" ? "#10b98135" : `${task.planColor || "#8b5cf6"}35`,
                               color: task.status === "COMPLETED" ? "#34d399" : (task.planColor || "#c4b5fd"),
                             }}
-                            title={`[${task.planName}] Class ${task.classNo}: ${task.topic} - Click to toggle completion`}
+                            title={`[${task.planName}] Lecture ${task.classNo}: ${task.topic} - Click to toggle study status`}
                           >
                             <span className="flex items-center gap-1.5">
                               {task.status === "COMPLETED"
                                 ? <CheckCircle2 className="h-2.5 w-2.5 shrink-0 text-emerald-400" />
                                 : <Clock className="h-2.5 w-2.5 shrink-0 text-indigo-400" />
                               }
-                              <span className="truncate text-[9.5px]">C{task.classNo}: {task.topic}</span>
+                              <span className="truncate text-[9.5px]">L{task.classNo}: {task.topic}</span>
                             </span>
                           </button>
                         </div>
@@ -549,15 +549,15 @@ export const CalendarPage: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Classes List Day Dialog */}
+      {/* Lectures List Day Dialog */}
       <Dialog open={!!selectedDateClasses} onOpenChange={(o) => !o && setSelectedDateClasses(null)}>
         <DialogContent className="sm:max-w-[420px] bg-[#0b1329] border border-slate-800 text-slate-100">
           <DialogHeader>
             <DialogTitle>
-              Classes for {selectedDateClasses ? format(selectedDateClasses, "MMMM d, yyyy") : ""}
+              Study Sessions for {selectedDateClasses ? format(selectedDateClasses, "MMMM d, yyyy") : ""}
             </DialogTitle>
             <DialogDescription className="text-slate-400">
-              Review and update class completion status.
+              Review and update your study progress.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2 py-3 max-h-[350px] overflow-y-auto pr-1">
@@ -570,7 +570,7 @@ export const CalendarPage: React.FC = () => {
                     ? "bg-emerald-500/10 border-emerald-500/20 text-slate-350 hover:bg-emerald-500/15"
                     : "bg-slate-900/40 border-slate-800 hover:bg-[#070d1e] hover:border-violet-500/40"
                 }`}
-                title="Click to toggle completion status"
+                title="Click to toggle study status"
               >
                 <div className="flex flex-col gap-0.5 min-w-0 pr-2">
                   <div className="flex items-center gap-2 flex-wrap">
@@ -583,11 +583,11 @@ export const CalendarPage: React.FC = () => {
                     ) : (
                       <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
                         <Clock className="h-2.5 w-2.5" />
-                        Incomplete
+                        Pending
                       </span>
                     )}
                   </div>
-                  <span className="text-sm font-bold text-slate-200 truncate">C{task.classNo}: {task.topic}</span>
+                  <span className="text-sm font-bold text-slate-200 truncate">Lecture {task.classNo}: {task.topic}</span>
                   <span className="text-xs text-slate-400">{task.durationDisplay}</span>
                 </div>
                 <div className="shrink-0">

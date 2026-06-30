@@ -19,11 +19,11 @@ export const SidebarContent: React.FC = () => {
   
   const navItems = [
     { name: "Dashboard", href: "/", icon: LayoutDashboard },
-    { name: "Subjects", href: "/subjects", icon: BookOpen },
-    { name: "Planner", href: "/planner", icon: ListTodo },
-    { name: "Calendar", href: "/calendar", icon: Calendar },
-    { name: "Upload Plan", href: "/upload", icon: Upload },
-    { name: "Analytics", href: "/analytics", icon: BarChart3 },
+    { name: "Papers (Subjects)", href: "/subjects", icon: BookOpen },
+    { name: "Study Planner", href: "/planner", icon: ListTodo },
+    { name: "Study Calendar", href: "/calendar", icon: Calendar },
+    { name: "Import Study Plan", href: "/upload", icon: Upload },
+    { name: "Progress Tracker", href: "/analytics", icon: BarChart3 },
     { name: "Badges & Streaks", href: "/badges", icon: Award },
     { name: "Settings", href: "/settings", icon: Settings },
   ]
