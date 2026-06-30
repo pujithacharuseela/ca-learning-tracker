@@ -135,12 +135,19 @@ public class EmailService {
         conn.setRequestProperty("Accept", "application/json");
         conn.setDoOutput(true);
 
+        // Convert htmlContent to a clean text fallback for spam filters
+        String textContent = htmlContent.replaceAll("<[^>]*>", "").replaceAll("\\s+", " ").trim();
+
         String jsonPayload = String.format(
             "{\"sender\":{\"name\":\"Learning Tracker\",\"email\":\"%s\"}," +
             "\"to\":[{\"email\":\"%s\"}]," +
             "\"subject\":\"%s\"," +
-            "\"htmlContent\":\"%s\"}",
-            fromEmail, to, escapeJson(subject), escapeJson(htmlContent)
+            "\"htmlContent\":\"%s\"," +
+            "\"textContent\":\"%s\"," +
+            "\"headers\":{" +
+            "\"List-Unsubscribe\":\"<mailto:unsubscribe-%s>\"" +
+            "}}",
+            fromEmail, to, escapeJson(subject), escapeJson(htmlContent), escapeJson(textContent), to
         );
 
         try (java.io.OutputStream os = conn.getOutputStream()) {
@@ -165,11 +172,19 @@ public class EmailService {
 
     private void sendViaSmtp(String to, String subject, String htmlContent) throws MessagingException {
         MimeMessage mimeMessage = mailSender.createMimeMessage();
+        
+        // Add List-Unsubscribe header
+        mimeMessage.addHeader("List-Unsubscribe", String.format("<mailto:unsubscribe-%s>", to));
+        
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
         helper.setFrom(fromEmail);
         helper.setTo(to);
         helper.setSubject(subject);
-        helper.setText(htmlContent, true);
+        
+        // Set both HTML and clean plain-text fallback (multi-part email prevents spam)
+        String textContent = htmlContent.replaceAll("<[^>]*>", "").replaceAll("\\s+", " ").trim();
+        helper.setText(textContent, htmlContent);
+        
         mailSender.send(mimeMessage);
         log.info("Email sent successfully via SMTP fallback to: {}", to);
     }
