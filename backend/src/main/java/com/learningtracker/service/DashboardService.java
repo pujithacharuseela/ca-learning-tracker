@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -72,9 +73,16 @@ public class DashboardService {
     }
 
     private ScheduleResponse mapToScheduleResponse(Schedule sc) {
+        LearningPlan plan = sc.getPlan();
+        UUID planId = plan != null ? plan.getId() : null;
+        String planName = plan != null ? plan.getName() : null;
+        String color = (plan != null && plan.getSubject() != null) ? plan.getSubject().getColor() : "#8b5cf6";
+
         return ScheduleResponse.builder()
                 .id(sc.getId())
-                .planId(sc.getPlan().getId())
+                .planId(planId)
+                .planName(planName)
+                .planColor(color)
                 .classId(sc.getLearningClass().getId())
                 .classNo(sc.getLearningClass().getClassNo())
                 .topic(sc.getLearningClass().getTopic())

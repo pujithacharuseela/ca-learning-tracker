@@ -23,6 +23,7 @@ public class ExportService {
     private final StudySessionRepository studySessionRepository;
     private final UserRepository userRepository;
 
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public ByteArrayInputStream exportStudySessionsToExcel() throws Exception {
         String email = SecurityUtils.getCurrentUserEmail();
         User user = userRepository.findByEmail(email)
@@ -60,13 +61,21 @@ public class ExportService {
                 Row row = sheet.createRow(rowIdx++);
 
                 row.createCell(0).setCellValue(session.getId().toString());
-                row.createCell(1).setCellValue(session.getSchedule().getLearningClass().getClassNo());
-                row.createCell(2).setCellValue(session.getSchedule().getLearningClass().getTopic());
-                row.createCell(3).setCellValue(session.getStatus().name());
-                row.createCell(4).setCellValue(session.getActualDurationMinutes());
-                row.createCell(5).setCellValue(session.getDifficultyRating());
-                row.createCell(6).setCellValue(session.getOverallRating());
-                row.createCell(7).setCellValue(session.getCompletedAt().toString());
+                
+                int classNo = 0;
+                String topic = "Unknown Topic";
+                if (session.getSchedule() != null && session.getSchedule().getLearningClass() != null) {
+                    classNo = session.getSchedule().getLearningClass().getClassNo();
+                    topic = session.getSchedule().getLearningClass().getTopic();
+                }
+                
+                row.createCell(1).setCellValue(classNo);
+                row.createCell(2).setCellValue(topic);
+                row.createCell(3).setCellValue(session.getStatus() != null ? session.getStatus().name() : "UNKNOWN");
+                row.createCell(4).setCellValue(session.getActualDurationMinutes() != null ? session.getActualDurationMinutes() : 0);
+                row.createCell(5).setCellValue(session.getDifficultyRating() != null ? session.getDifficultyRating() : 0);
+                row.createCell(6).setCellValue(session.getOverallRating() != null ? session.getOverallRating() : 0);
+                row.createCell(7).setCellValue(session.getCompletedAt() != null ? session.getCompletedAt().toString() : "N/A");
             }
 
             // Autosizing columns

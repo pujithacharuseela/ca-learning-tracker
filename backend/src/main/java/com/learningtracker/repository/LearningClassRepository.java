@@ -113,4 +113,18 @@ public interface LearningClassRepository extends JpaRepository<LearningClass, UU
     @org.springframework.data.jpa.repository.Modifying
     @org.springframework.data.jpa.repository.Query("DELETE FROM LearningClass lc WHERE lc.user.id = :userId")
     void deleteByUserId(@org.springframework.data.repository.query.Param("userId") UUID userId);
+
+    /** Delete classes for a specific user and subject */
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.data.jpa.repository.Query("DELETE FROM LearningClass lc WHERE lc.user.id = :userId AND lc.subject.id = :subjectId")
+    void deleteByUserIdAndSubjectId(
+        @org.springframework.data.repository.query.Param("userId") UUID userId,
+        @org.springframework.data.repository.query.Param("subjectId") UUID subjectId);
+
+    /** Count classes for a user linked to a specific uploaded file (for cleanup checks) */
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(lc) FROM LearningClass lc WHERE lc.user.id = :userId AND lc.uploadedFile.id = :fileId")
+    long countByUserIdAndUploadedFileId(
+        @org.springframework.data.repository.query.Param("userId") UUID userId,
+        @org.springframework.data.repository.query.Param("fileId") UUID fileId);
 }
+

@@ -36,6 +36,7 @@ public class PlannerService {
     private final UserRepository userRepository;
     private final SubjectRepository subjectRepository;
     private final StudySessionRepository studySessionRepository;
+    private final NoteRepository noteRepository;
     private final EmailService emailService;
 
     @Transactional
@@ -82,6 +83,7 @@ public class PlannerService {
             );
         } catch (Exception e) {
             // Log warning but don't fail plan creation if email fails
+            log.warn("Failed to send plan scheduled email: {}", e.getMessage());
         }
 
         return mapToPlanResponse(plan);
@@ -111,6 +113,11 @@ public class PlannerService {
         return mapToPlanResponse(plan);
     }
 
+    /**
+     * Deletes a plan and ALL its associated data in correct order:
+     * notes -> study_sessions -> schedules -> plan
+     * This prevents FK constraint violations.
+     */
     @Transactional
     public void deletePlan(UUID planId) {
         String email = SecurityUtils.getCurrentUserEmail();
@@ -124,8 +131,12 @@ public class PlannerService {
             throw new InvalidOperationException("You do not have permission to delete this plan.");
         }
 
+        // Delete in correct FK order: notes -> study_sessions -> schedules -> plan
+        noteRepository.deleteByPlanId(planId);
+        studySessionRepository.deleteByPlanId(planId);
         scheduleRepository.deleteByPlanId(planId);
         learningPlanRepository.delete(plan);
+        log.info("Deleted plan {} and all associated data for user {}", planId, user.getId());
     }
 
     @Transactional
@@ -142,9 +153,9 @@ public class PlannerService {
         scheduleRepository.save(schedule);
 
         if (newStatus == StudyStatus.COMPLETED) {
-            boolean exists = studySessionRepository.findAll().stream()
-                    .anyMatch(ss -> ss.getSchedule() != null && ss.getSchedule().getId().equals(scheduleId));
-            if (!exists) {
+            // Use efficient repository query instead of findAll()
+            List<StudySession> existing = studySessionRepository.findByScheduleId(scheduleId);
+            if (existing.isEmpty()) {
                 StudySession session = new StudySession();
                 session.setUser(schedule.getUser());
                 session.setSchedule(schedule);
@@ -157,9 +168,13 @@ public class PlannerService {
                 studySessionRepository.save(session);
             }
         } else {
-            studySessionRepository.findAll().stream()
-                    .filter(ss -> ss.getSchedule() != null && ss.getSchedule().getId().equals(scheduleId))
-                    .forEach(studySessionRepository::delete);
+            // Uncomplete: delete associated sessions in correct FK order (notes -> sessions)
+            List<StudySession> sessions = studySessionRepository.findByScheduleId(scheduleId);
+            for (StudySession ss : sessions) {
+                List<com.learningtracker.entity.Note> notes = noteRepository.findByStudySessionId(ss.getId());
+                noteRepository.deleteAll(notes);
+                studySessionRepository.delete(ss);
+            }
         }
 
         return mapToScheduleResponse(schedule);
@@ -310,6 +325,19 @@ public class PlannerService {
 
     private ScheduleResponse mapToScheduleResponse(Schedule sc) {
         LearningPlan plan = sc.getPlan();
+        if (plan == null) {
+            log.warn("Schedule {} has no associated plan — skipping", sc.getId());
+            return ScheduleResponse.builder()
+                    .id(sc.getId())
+                    .classId(sc.getLearningClass().getId())
+                    .classNo(sc.getLearningClass().getClassNo())
+                    .topic(sc.getLearningClass().getTopic())
+                    .durationMinutes(sc.getLearningClass().getDurationMinutes())
+                    .durationDisplay(sc.getLearningClass().getDurationDisplay())
+                    .scheduledDate(sc.getScheduledDate())
+                    .status(sc.getStatus().name())
+                    .build();
+        }
         String color = (plan.getSubject() != null) ? plan.getSubject().getColor() : "#8b5cf6";
         return ScheduleResponse.builder()
                 .id(sc.getId())

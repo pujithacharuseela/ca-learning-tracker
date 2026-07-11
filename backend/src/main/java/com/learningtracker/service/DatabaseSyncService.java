@@ -54,14 +54,6 @@ public class DatabaseSyncService {
     public void onApplicationReady() {
         // Initial setup/sync H2 tables after Hibernate schema generation is complete
         try {
-            // Force reset of inactive records on primary Postgres
-            try {
-                primaryJdbcTemplate.execute("UPDATE learning_classes SET is_active = true");
-                log.info("Database startup initialization: Set all learning classes active successfully on primary!");
-            } catch (Exception ex) {
-                log.warn("Failed updating class statuses on primary: " + ex.getMessage());
-            }
-
             initializeH2Schema();
             syncPrimaryToBackup();
         } catch (Exception e) {

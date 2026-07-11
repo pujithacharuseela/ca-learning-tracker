@@ -180,6 +180,10 @@ public class ExcelUploadService {
         return uploadedFileRepository.findByUserIdOrderByUploadedAtDesc(user.getId());
     }
 
+    /**
+     * Deletes ALL data for a user in correct FK order:
+     * notes -> study_sessions -> schedules -> plans -> classes -> uploaded_files
+     */
     @Transactional
     public void clearAllUserData() {
         String email = SecurityUtils.getCurrentUserEmail();
@@ -187,14 +191,19 @@ public class ExcelUploadService {
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
         UUID userId = user.getId();
 
-        studySessionRepository.deleteByUserId(userId);
+        // Correct order: delete child records before parent records
         noteRepository.deleteByUserId(userId);
+        studySessionRepository.deleteByUserId(userId);
         scheduleRepository.deleteByUserId(userId);
         learningPlanRepository.deleteByUserId(userId);
         learningClassRepository.deleteByUserId(userId);
         uploadedFileRepository.deleteByUserId(userId);
     }
 
+    /**
+     * Deletes data for a user filtered by subject in correct FK order.
+     * Uses efficient repository queries instead of findAll() over all records.
+     */
     @Transactional
     public void clearUserDataBySubject(UUID subjectId) {
         String email = SecurityUtils.getCurrentUserEmail();
@@ -202,45 +211,26 @@ public class ExcelUploadService {
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
         UUID userId = user.getId();
 
-        // 1. Get and delete all plans matching subjectId, plus child entities (notes, sessions, schedules)
+        // 1. Get all plans for this subject
         List<LearningPlan> plans = learningPlanRepository.findByUserId(userId).stream()
                 .filter(p -> p.getSubject() != null && p.getSubject().getId().equals(subjectId))
                 .toList();
 
+        // 2. Delete in correct FK order per plan: notes -> sessions -> schedules -> plan
         for (LearningPlan plan : plans) {
-            List<Schedule> schedules = scheduleRepository.findByPlanId(plan.getId());
-            for (Schedule s : schedules) {
-                List<StudySession> sessions = studySessionRepository.findAll().stream()
-                        .filter(ss -> ss.getSchedule() != null && ss.getSchedule().getId().equals(s.getId()))
-                        .toList();
-                for (StudySession ss : sessions) {
-                    noteRepository.findAll().stream()
-                            .filter(n -> n.getStudySession() != null && n.getStudySession().getId().equals(ss.getId()))
-                            .forEach(noteRepository::delete);
-                    studySessionRepository.delete(ss);
-                }
-                scheduleRepository.delete(s);
-            }
+            UUID planId = plan.getId();
+            noteRepository.deleteByPlanId(planId);
+            studySessionRepository.deleteByPlanId(planId);
+            scheduleRepository.deleteByPlanId(planId);
             learningPlanRepository.delete(plan);
         }
 
-        // 2. Delete classes of this subject
-        List<LearningClass> classes = learningClassRepository.findAll().stream()
-                .filter(lc -> lc.getUser().getId().equals(userId) && lc.getSubject() != null && lc.getSubject().getId().equals(subjectId))
-                .toList();
+        // 3. Delete classes of this subject (use targeted query)
+        learningClassRepository.deleteByUserIdAndSubjectId(userId, subjectId);
 
-        for (LearningClass lc : classes) {
-            learningClassRepository.delete(lc);
-        }
-
-        // 3. Clean up empty UploadedFiles
+        // 4. Clean up empty UploadedFiles for this user/subject
         uploadedFileRepository.findByUserIdOrderByUploadedAtDesc(userId).stream()
-                .filter(uf -> {
-                    long remainingClasses = learningClassRepository.findAll().stream()
-                            .filter(lc -> lc.getUploadedFile() != null && lc.getUploadedFile().getId().equals(uf.getId()))
-                            .count();
-                    return remainingClasses == 0;
-                })
+                .filter(uf -> learningClassRepository.countByUserIdAndUploadedFileId(userId, uf.getId()) == 0)
                 .forEach(uploadedFileRepository::delete);
     }
 }

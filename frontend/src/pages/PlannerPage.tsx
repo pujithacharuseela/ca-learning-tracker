@@ -96,11 +96,16 @@ export const PlannerPage: React.FC = () => {
       toast.success("Learning plan created and classes scheduled!")
       queryClient.invalidateQueries({ queryKey: ["plans"] })
       queryClient.invalidateQueries({ queryKey: ["plannedClassIds"] })
+      queryClient.invalidateQueries({ queryKey: ["allSchedules"] })
+      queryClient.invalidateQueries({ queryKey: ["classes"] })
       setIsOpen(false)
       setSelectedClasses([])
       setPlanName(""); setPlanDesc(""); setStartDate(""); setEndDate(""); setSelectedSubjectId("")
     },
-    onError: (err: any) => toast.error(err.response?.data?.message || "Failed to create plan."),
+    onError: (err: any) => {
+      const errMsg = err.response?.data?.message || err.response?.data?.error || err.message || "Failed to create plan.";
+      toast.error(errMsg);
+    },
   })
 
   const updatePlanMutation = useMutation({
@@ -117,12 +122,16 @@ export const PlannerPage: React.FC = () => {
   const deletePlanMutation = useMutation({
     mutationFn: deletePlan,
     onSuccess: () => {
-      toast.success("Plan deleted.")
+      toast.success("Plan deleted successfully.")
       queryClient.invalidateQueries({ queryKey: ["plans"] })
       queryClient.invalidateQueries({ queryKey: ["plannedClassIds"] })
       queryClient.invalidateQueries({ queryKey: ["allSchedules"] })
+      queryClient.invalidateQueries({ queryKey: ["classes"] })
     },
-    onError: (err: any) => toast.error(err.response?.data?.message || "Failed to delete plan."),
+    onError: (err: any) => {
+      const errMsg = err.response?.data?.message || err.response?.data?.error || err.message || "Failed to delete plan.";
+      toast.error(errMsg);
+    },
   })
 
   const toggleSelectClass = (id: string) => {
@@ -144,8 +153,16 @@ export const PlannerPage: React.FC = () => {
   }
 
   const handleCreatePlan = () => {
-    if (!planName || !startDate || !endDate) {
+    if (!planName.trim() || !startDate || !endDate) {
       toast.error("Please fill all mandatory fields.")
+      return
+    }
+    if (new Date(endDate) < new Date(startDate)) {
+      toast.error("End date must be on or after the start date.")
+      return
+    }
+    if (selectedClasses.length === 0) {
+      toast.error("Please select at least one class/lecture to schedule.")
       return
     }
     createPlanMutation.mutate({
@@ -159,8 +176,12 @@ export const PlannerPage: React.FC = () => {
   }
 
   const handleUpdatePlan = () => {
-    if (!editPlanId || !editName || !editStartDate || !editEndDate) {
+    if (!editPlanId || !editName.trim() || !editStartDate || !editEndDate) {
       toast.error("Mandatory fields missing.")
+      return
+    }
+    if (new Date(editEndDate) < new Date(editStartDate)) {
+      toast.error("End date must be on or after the start date.")
       return
     }
     updatePlanMutation.mutate({

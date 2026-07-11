@@ -35,17 +35,19 @@ public class AnalyticsService {
         List<StudySession> sessions = studySessionRepository.findByUserIdAndCompletedAtBetween(
                 user.getId(), startDate.atStartOfDay(), endDate.plusDays(1).atStartOfDay());
 
-        long totalMinutes = sessions.stream().mapToLong(StudySession::getActualDurationMinutes).sum();
+        long totalMinutes = sessions.stream()
+                .mapToLong(s -> s.getActualDurationMinutes() != null ? s.getActualDurationMinutes() : 0L)
+                .sum();
         long completedCount = sessions.size();
 
         double avgDifficulty = sessions.stream()
-                .mapToInt(StudySession::getDifficultyRating)
+                .mapToInt(s -> s.getDifficultyRating() != null ? s.getDifficultyRating() : 0)
                 .filter(r -> r > 0)
                 .average()
                 .orElse(0.0);
 
         double avgRating = sessions.stream()
-                .mapToInt(StudySession::getOverallRating)
+                .mapToInt(s -> s.getOverallRating() != null ? s.getOverallRating() : 0)
                 .filter(r -> r > 0)
                 .average()
                 .orElse(0.0);
@@ -57,9 +59,12 @@ public class AnalyticsService {
         }
 
         sessions.forEach(s -> {
-            String dateKey = s.getCompletedAt().toLocalDate().format(DateTimeFormatter.ISO_LOCAL_DATE);
-            if (dailyTrend.containsKey(dateKey)) {
-                dailyTrend.put(dateKey, dailyTrend.get(dateKey) + s.getActualDurationMinutes());
+            if (s.getCompletedAt() != null) {
+                String dateKey = s.getCompletedAt().toLocalDate().format(DateTimeFormatter.ISO_LOCAL_DATE);
+                if (dailyTrend.containsKey(dateKey)) {
+                    long minutes = s.getActualDurationMinutes() != null ? s.getActualDurationMinutes() : 0L;
+                    dailyTrend.put(dateKey, dailyTrend.get(dateKey) + minutes);
+                }
             }
         });
 
@@ -77,12 +82,13 @@ public class AnalyticsService {
 
         // Topic distribution
         Map<String, List<StudySession>> topicGroup = sessions.stream()
+                .filter(s -> s.getSchedule() != null && s.getSchedule().getLearningClass() != null && s.getSchedule().getLearningClass().getTopic() != null)
                 .collect(Collectors.groupingBy(s -> s.getSchedule().getLearningClass().getTopic()));
 
         List<AnalyticsResponse.SubjectMetric> topicMetrics = topicGroup.entrySet().stream()
                 .map(e -> new AnalyticsResponse.SubjectMetric(
                         e.getKey(),
-                        e.getValue().stream().mapToLong(StudySession::getActualDurationMinutes).sum(),
+                        e.getValue().stream().mapToLong(s -> s.getActualDurationMinutes() != null ? s.getActualDurationMinutes() : 0L).sum(),
                         e.getValue().size()
                 ))
                 .collect(Collectors.toList());

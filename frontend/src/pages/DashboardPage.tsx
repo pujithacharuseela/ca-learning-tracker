@@ -43,12 +43,18 @@ export const DashboardPage: React.FC = () => {
   })
 
   const completeMutation = useMutation({
-    mutationFn: () =>
-      completeSession(activeSession.id, {
-        difficultyRating: Number(difficulty),
-        overallRating: Number(rating),
-        notes,
-        status,
+    mutationFn: (variables: {
+      sessionId: string;
+      difficultyRating: number;
+      overallRating: number;
+      notes: string;
+      status: any;
+    }) =>
+      completeSession(variables.sessionId, {
+        difficultyRating: variables.difficultyRating,
+        overallRating: variables.overallRating,
+        notes: variables.notes,
+        status: variables.status,
       }),
     onSuccess: () => {
       toast.success("Study session saved successfully!")
@@ -58,6 +64,7 @@ export const DashboardPage: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ["dashboard"] })
       queryClient.invalidateQueries({ queryKey: ["analytics"], exact: false })
       queryClient.invalidateQueries({ queryKey: ["allSchedules"] })
+      queryClient.invalidateQueries({ queryKey: ["plannedClassIds"] })
     },
     onError: (err: any) => {
       toast.error(err.response?.data?.message || "Failed to save study session.")
@@ -272,7 +279,19 @@ export const DashboardPage: React.FC = () => {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsModalOpen(false)}>Cancel</Button>
-            <Button onClick={() => completeMutation.mutate()} disabled={completeMutation.isPending}>
+            <Button
+              onClick={() => {
+                if (!activeSession) return;
+                completeMutation.mutate({
+                  sessionId: activeSession.id,
+                  difficultyRating: Number(difficulty),
+                  overallRating: Number(rating),
+                  notes,
+                  status,
+                });
+              }}
+              disabled={completeMutation.isPending}
+            >
               Save Session
             </Button>
           </DialogFooter>
