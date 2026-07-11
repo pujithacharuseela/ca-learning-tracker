@@ -64,10 +64,15 @@ export async function deleteSubject(id: string): Promise<void> {
 }
 
 // ─── Classes ─────────────────────────────────────────────
-export async function getClasses(search: string, page: number, size: number, subjectId?: string): Promise<PaginatedResponse<LearningClass>> {
+export async function getClasses(search: string, page: number, size: number, subjectId?: string, status: string = 'all'): Promise<PaginatedResponse<LearningClass>> {
   const response = await apiClient.get<PaginatedResponse<LearningClass>>('/planner/classes', {
-    params: { search, page, size, subjectId },
+    params: { search, page, size, subjectId, status },
   });
+  return response.data;
+}
+
+export async function toggleClassActive(classId: string): Promise<LearningClass> {
+  const response = await apiClient.patch<LearningClass>(`/planner/classes/${classId}/toggle-active`);
   return response.data;
 }
 

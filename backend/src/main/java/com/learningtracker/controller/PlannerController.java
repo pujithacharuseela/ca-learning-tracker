@@ -73,13 +73,14 @@ public class PlannerController {
     public ResponseEntity<Page<LearningClass>> getClasses(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) UUID subjectId,
+            @RequestParam(defaultValue = "all") String status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "classNo") String sortBy,
             @RequestParam(defaultValue = "ASC") String sortDir) {
         Sort sort = Sort.by(Sort.Direction.fromString(sortDir), sortBy);
         Pageable pageable = PageRequest.of(page, size, sort);
-        return ResponseEntity.ok(plannerService.getAvailableClasses(search, subjectId, pageable));
+        return ResponseEntity.ok(plannerService.getAvailableClasses(search, subjectId, status, pageable));
     }
 
     @GetMapping("/classes/planned-ids")
@@ -103,5 +104,10 @@ public class PlannerController {
             @PathVariable UUID scheduleId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate newDate) {
         return ResponseEntity.ok(plannerService.rescheduleClass(scheduleId, newDate));
+    }
+
+    @PatchMapping("/classes/{classId}/toggle-active")
+    public ResponseEntity<LearningClass> toggleClassActive(@PathVariable UUID classId) {
+        return ResponseEntity.ok(plannerService.toggleClassActive(classId));
     }
 }

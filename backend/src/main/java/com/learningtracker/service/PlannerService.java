@@ -232,22 +232,13 @@ public class PlannerService {
     }
 
     @Transactional(readOnly = true)
-    public Page<LearningClass> getAvailableClasses(String search, UUID subjectId, Pageable pageable) {
+    public Page<LearningClass> getAvailableClasses(String search, UUID subjectId, String status, Pageable pageable) {
         String email = SecurityUtils.getCurrentUserEmail();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
 
-        if (subjectId != null) {
-            if (search != null && !search.isBlank()) {
-                return learningClassRepository.findByUserIdAndSubjectIdAndTopicContainingIgnoreCase(user.getId(), subjectId, search, pageable);
-            }
-            return learningClassRepository.findByUserIdAndSubjectId(user.getId(), subjectId, pageable);
-        }
-
-        if (search != null && !search.isBlank()) {
-            return learningClassRepository.findByUserIdAndTopicContainingIgnoreCase(user.getId(), search, pageable);
-        }
-        return learningClassRepository.findByUserId(user.getId(), pageable);
+        String finalStatus = (status == null || status.isBlank()) ? "all" : status.toLowerCase().trim();
+        return learningClassRepository.findByFilters(user.getId(), subjectId, search, finalStatus, pageable);
     }
 
     private void distributeClasses(User user, LearningPlan plan, List<UUID> classIds, LocalDate start, LocalDate end) {
@@ -310,5 +301,22 @@ public class PlannerService {
                 .scheduledDate(sc.getScheduledDate())
                 .status(sc.getStatus().name())
                 .build();
+     }
+
+    @Transactional
+    public LearningClass toggleClassActive(UUID classId) {
+        String email = SecurityUtils.getCurrentUserEmail();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
+
+        LearningClass cl = learningClassRepository.findById(classId)
+                .orElseThrow(() -> new ResourceNotFoundException("LearningClass", "id", classId));
+
+        if (!cl.getUser().getId().equals(user.getId())) {
+            throw new InvalidOperationException("You do not have permission to modify this lecture.");
+        }
+
+        cl.setActive(!cl.isActive());
+        return learningClassRepository.save(cl);
     }
 }

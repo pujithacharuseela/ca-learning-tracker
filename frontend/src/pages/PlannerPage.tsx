@@ -1,8 +1,8 @@
-import React, { useState } from "react"
-import { getClasses, createPlan, getPlannedClassIds, getPlans, deletePlan, updatePlan, getSubjects } from "@/api/planner"
+import React, { useState, useMemo } from "react"
+import { getClasses, createPlan, getPlannedClassIds, getPlans, deletePlan, updatePlan, getSubjects, toggleClassActive, getAllSchedules } from "@/api/planner"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-import { Search, Plus, AlertCircle, CheckCircle2, Pencil, Trash2, BookOpen, GraduationCap } from "lucide-react"
+import { Search, Plus, AlertCircle, CheckCircle2, Pencil, Trash2, BookOpen, GraduationCap, EyeOff, Eye, Clock } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 
 import { Button } from "@/components/ui/button"
@@ -44,11 +44,24 @@ export const PlannerPage: React.FC = () => {
   })
 
   const [filterSubjectId, setFilterSubjectId] = useState<string>("all")
+  const [statusFilter, setStatusFilter] = useState<"all" | "planned" | "unplanned" | "completed" | "excluded">("all")
 
   // Fetch classes
   const { data: classesData, isLoading } = useQuery({
-    queryKey: ["classes", search, filterSubjectId, page],
-    queryFn: () => getClasses(search, page, 10, filterSubjectId === "all" ? undefined : filterSubjectId),
+    queryKey: ["classes", search, filterSubjectId, statusFilter, page],
+    queryFn: () => getClasses(search, page, 10, filterSubjectId === "all" ? undefined : filterSubjectId, statusFilter),
+  })
+
+  const totalPages = classesData?.page?.totalPages ?? classesData?.totalPages ?? 0
+
+  const toggleActiveMutation = useMutation({
+    mutationFn: toggleClassActive,
+    onSuccess: () => {
+      toast.success("Lecture status updated!")
+      queryClient.invalidateQueries({ queryKey: ["classes"] })
+      queryClient.invalidateQueries({ queryKey: ["plannedClassIds"] })
+    },
+    onError: (err: any) => toast.error(err.response?.data?.message || "Failed to update lecture status."),
   })
 
   // Fetch IDs of classes already scheduled in any plan
@@ -57,6 +70,19 @@ export const PlannerPage: React.FC = () => {
     queryFn: getPlannedClassIds,
   })
   const plannedSet = new Set<string>(plannedIds?.map(String) ?? [])
+
+  // Fetch all schedules to map completed items
+  const { data: allSchedules } = useQuery({
+    queryKey: ["allSchedules"],
+    queryFn: getAllSchedules,
+  })
+
+  const completedClassIds = useMemo(() => {
+    if (!allSchedules) return new Set<string>()
+    return new Set<string>(
+      allSchedules.filter(s => s.status === "COMPLETED").map(s => String(s.classId))
+    )
+  }, [allSchedules])
 
   // Fetch all plans for management panel
   const { data: plans } = useQuery({
@@ -415,7 +441,30 @@ export const PlannerPage: React.FC = () => {
       </Card>
 
       {/* Classes Table */}
-      <Card>
+      <Card className="border-slate-800/60 bg-[#0b1329]/20">
+        <CardHeader className="border-b border-slate-800/60 pb-3">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div>
+              <h3 className="text-sm font-semibold text-slate-200">Study Sessions & Lectures</h3>
+              <p className="text-xs text-slate-500 mt-0.5">Filter by study progress or skip optional lectures</p>
+            </div>
+            <div className="flex flex-wrap gap-1 bg-slate-950/40 p-1 rounded-xl border border-slate-800/40 self-start">
+              {(["all", "planned", "unplanned", "completed", "excluded"] as const).map((status) => (
+                <button
+                  key={status}
+                  onClick={() => { setStatusFilter(status); setPage(0) }}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all ${
+                    statusFilter === status
+                      ? "bg-violet-600 text-white shadow-md shadow-violet-600/10"
+                      : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/45"
+                  }`}
+                >
+                  {status === "all" ? "All Lectures" : status === "planned" ? "Scheduled" : status === "unplanned" ? "Remaining" : status === "completed" ? "Completed" : "Skipped"}
+                </button>
+              ))}
+            </div>
+          </div>
+        </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
@@ -424,22 +473,23 @@ export const PlannerPage: React.FC = () => {
                   <th className="px-6 py-4 w-12">
                     <Checkbox checked={isAllPageSelected} onCheckedChange={handleSelectAll} />
                   </th>
-                  <th className="px-6 py-4">Class No</th>
-                  <th className="px-6 py-4">Subject</th>
-                  <th className="px-6 py-4">Topic</th>
+                  <th className="px-6 py-4">Lecture No</th>
+                  <th className="px-6 py-4">Paper</th>
+                  <th className="px-6 py-4">Chapter / Topic</th>
                   <th className="px-6 py-4">Duration</th>
                   <th className="px-6 py-4">Status</th>
+                  <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/80">
                 {isLoading ? (
-                  <tr><td colSpan={6} className="text-center py-8 text-slate-500">Loading classes...</td></tr>
+                  <tr><td colSpan={7} className="text-center py-8 text-slate-500">Loading classes...</td></tr>
                 ) : !classesData || !classesData.content || classesData.content.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="text-center py-8 text-slate-500">
+                    <td colSpan={7} className="text-center py-8 text-slate-500">
                       <div className="flex flex-col items-center gap-2">
                         <AlertCircle className="h-8 w-8 text-slate-500" />
-                        <span className="text-slate-400">No classes found. Go to Upload Plan page to import schedules.</span>
+                        <span className="text-slate-400">No lectures found matching this category.</span>
                       </div>
                     </td>
                   </tr>
@@ -447,17 +497,23 @@ export const PlannerPage: React.FC = () => {
                   classesData.content.map((cl) => {
                     const isSelected = selectedClasses.includes(String(cl.id))
                     const isPlanned = plannedSet.has(String(cl.id))
+                    const isCompleted = completedClassIds.has(String(cl.id))
+                    const isActive = cl.isActive
+
                     return (
                       <tr
                         key={cl.id}
                         className={`hover:bg-[#070d1e]/80 cursor-pointer transition-colors ${
                           isSelected ? "bg-violet-600/10" : ""
-                        }`}
-                        onClick={() => toggleSelectClass(String(cl.id))}
+                        } ${!isActive ? "opacity-50 bg-slate-950/20" : ""}`}
+                        onClick={() => {
+                          if (isActive) toggleSelectClass(String(cl.id))
+                        }}
                       >
                         <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                           <Checkbox
                             checked={isSelected}
+                            disabled={!isActive}
                             onCheckedChange={() => toggleSelectClass(String(cl.id))}
                           />
                         </td>
@@ -471,20 +527,53 @@ export const PlannerPage: React.FC = () => {
                             <span className="text-slate-600 text-xs">—</span>
                           )}
                         </td>
-                        <td className="px-6 py-4 text-slate-300">{cl.topic}</td>
+                        <td className="px-6 py-4 text-slate-300 font-medium">{cl.topic}</td>
                         <td className="px-6 py-4 text-slate-400">{cl.durationDisplay}</td>
                         <td className="px-6 py-4">
-                          {isSelected ? (
+                          {!isActive ? (
+                            <Badge variant="outline" className="bg-rose-500/10 text-rose-400 border-rose-500/20 text-[10px]">
+                              Skipped
+                            </Badge>
+                          ) : isSelected ? (
                             <span className="inline-flex items-center gap-1.5 text-violet-400 font-semibold text-xs">
                               <CheckCircle2 className="h-3.5 w-3.5" /> Selected
                             </span>
-                          ) : isPlanned ? (
+                          ) : isCompleted ? (
                             <span className="inline-flex items-center gap-1.5 text-emerald-400 font-semibold text-xs">
-                              <CheckCircle2 className="h-3.5 w-3.5 fill-emerald-500/20" /> In Plan
+                              <CheckCircle2 className="h-3.5 w-3.5 fill-emerald-500/20 text-emerald-400" /> Completed
+                            </span>
+                          ) : isPlanned ? (
+                            <span className="inline-flex items-center gap-1.5 text-indigo-400 font-semibold text-xs">
+                              <Clock className="h-3.5 w-3.5 text-indigo-400" /> Scheduled
                             </span>
                           ) : (
-                            <span className="text-slate-600 text-xs">—</span>
+                            <Badge variant="outline" className="bg-slate-800 text-slate-400 border-slate-700 text-[10px]">
+                              Remaining
+                            </Badge>
                           )}
+                        </td>
+                        <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className={`flex items-center gap-1.5 ml-auto rounded-lg text-xs font-semibold ${
+                              isActive
+                                ? "text-slate-400 hover:text-rose-400 hover:bg-rose-500/10"
+                                : "text-emerald-450 hover:text-emerald-350 hover:bg-emerald-500/10"
+                            }`}
+                            onClick={() => toggleActiveMutation.mutate(cl.id)}
+                            disabled={toggleActiveMutation.isPending}
+                          >
+                            {isActive ? (
+                              <>
+                                <EyeOff className="h-3.5 w-3.5" /> Skip Topic
+                              </>
+                            ) : (
+                              <>
+                                <Eye className="h-3.5 w-3.5" /> Include
+                              </>
+                            )}
+                          </Button>
                         </td>
                       </tr>
                     )
@@ -493,13 +582,13 @@ export const PlannerPage: React.FC = () => {
               </tbody>
             </table>
           </div>
-
-          {classesData && classesData.totalPages > 1 && (
+ 
+          {totalPages > 1 && (
             <div className="flex justify-between items-center px-6 py-4 border-t border-slate-800/60">
-              <span className="text-xs text-slate-500">Page {page + 1} of {classesData.totalPages}</span>
+              <span className="text-xs text-slate-500">Page {page + 1} of {totalPages}</span>
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(0, p - 1))} disabled={page === 0}>Previous</Button>
-                <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(classesData.totalPages - 1, p + 1))} disabled={page === classesData.totalPages - 1}>Next</Button>
+                <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))} disabled={page === totalPages - 1}>Next</Button>
               </div>
             </div>
           )}

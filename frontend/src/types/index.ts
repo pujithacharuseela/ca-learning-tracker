@@ -123,10 +123,16 @@ export interface MessageResponse {
 
 export interface PaginatedResponse<T> {
   content: T[];
-  totalElements: number;
-  totalPages: number;
-  pageNumber: number;
-  pageSize: number;
+  totalElements?: number;
+  totalPages?: number;
+  pageNumber?: number;
+  pageSize?: number;
+  page?: {
+    size: number;
+    totalElements: number;
+    totalPages: number;
+    number: number;
+  };
 }
 
 /* ============================================
