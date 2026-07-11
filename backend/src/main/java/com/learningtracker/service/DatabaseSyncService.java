@@ -48,15 +48,18 @@ public class DatabaseSyncService {
     public void init() {
         // Register recovery callback
         DatabaseConfig.setSyncCallback(this::syncBackupToPrimary);
-        
-        // Initial setup/sync H2 tables on startup
+    }
+
+    @org.springframework.context.event.EventListener(org.springframework.boot.context.event.ApplicationReadyEvent.class)
+    public void onApplicationReady() {
+        // Initial setup/sync H2 tables after Hibernate schema generation is complete
         try {
             // Force reset of inactive records on primary Postgres
             try {
-                primaryJdbcTemplate.execute("UPDATE learning_classes SET is_active = true WHERE is_active IS NULL OR is_active = false");
+                primaryJdbcTemplate.execute("UPDATE learning_classes SET is_active = true");
                 log.info("Database startup initialization: Set all learning classes active successfully on primary!");
             } catch (Exception ex) {
-                log.warn("Skipped updating class statuses on primary: " + ex.getMessage());
+                log.warn("Failed updating class statuses on primary: " + ex.getMessage());
             }
 
             initializeH2Schema();
