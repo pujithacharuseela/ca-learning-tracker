@@ -284,43 +284,44 @@ export const PlannerPage: React.FC = () => {
               <BookOpen className="h-4 w-4 text-violet-400" /> Active Plans
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2">
-            {plans.map((plan) => (
-              <div key={plan.id} className="flex items-center justify-between bg-[#070d1e]/60 border border-slate-800/60 rounded-xl px-4 py-3">
-                <div>
+          <CardContent className="max-h-[260px] overflow-y-auto pr-1 space-y-0">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+              {plans.map((plan) => (
+                <div key={plan.id} className="flex items-center justify-between bg-[#070d1e]/60 border border-slate-800/60 rounded-xl px-4 py-3">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-semibold text-slate-200">{plan.name}</p>
+                      {plan.subjectName && (
+                        <Badge style={{ backgroundColor: `${plan.subjectColor}20`, color: plan.subjectColor, borderColor: `${plan.subjectColor}40` }} className="text-[10px] py-0 border">
+                          {plan.subjectName}
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5">
+                      <p className="text-xs text-slate-500">{plan.startDate} → {plan.endDate}</p>
+                      <span className="text-xs text-slate-600 font-semibold hidden sm:inline">•</span>
+                      <span className="text-xs text-indigo-400 font-medium bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-md">
+                        {(() => {
+                          const daysLeft = Math.ceil((new Date(plan.endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+                          if (daysLeft > 0) return `⏳ ${daysLeft} days left`
+                          if (daysLeft === 0) return `🚨 Deadline today!`
+                          return `⚠️ Overdue by ${Math.abs(daysLeft)} day(s)`
+                        })()}
+                      </span>
+                    </div>
+                  </div>
                   <div className="flex items-center gap-2">
-                    <p className="text-sm font-semibold text-slate-200">{plan.name}</p>
-                    {plan.subjectName && (
-                      <Badge style={{ backgroundColor: `${plan.subjectColor}20`, color: plan.subjectColor, borderColor: `${plan.subjectColor}40` }} className="text-[10px] py-0 border">
-                        {plan.subjectName}
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5">
-                    <p className="text-xs text-slate-500">{plan.startDate} → {plan.endDate}</p>
-                    <span className="text-xs text-slate-600 font-semibold hidden sm:inline">•</span>
-                    <span className="text-xs text-indigo-400 font-medium bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-md">
-                      {(() => {
-                        const daysLeft = Math.ceil((new Date(plan.endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
-                        if (daysLeft > 0) return `⏳ ${daysLeft} days left`
-                        if (daysLeft === 0) return `🚨 Deadline today!`
-                        return `⚠️ Overdue by ${Math.abs(daysLeft)} day(s)`
-                      })()}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge className={plan.status === "ACTIVE" ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" : "bg-slate-500/15 text-slate-400 border-slate-500/30"}>
-                    {plan.status}
-                  </Badge>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-7 w-7 text-slate-500 hover:text-indigo-400"
-                    onClick={() => {
-                      setEditPlanId(plan.id)
-                      setEditName(plan.name)
-                      setEditDesc(plan.description || "")
+                    <Badge className={plan.status === "ACTIVE" ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" : "bg-slate-500/15 text-slate-400 border-slate-500/30"}>
+                      {plan.status}
+                    </Badge>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-7 w-7 text-slate-500 hover:text-indigo-400"
+                      onClick={() => {
+                        setEditPlanId(plan.id)
+                        setEditName(plan.name)
+                        setEditDesc(plan.description || "")
                       setEditStartDate(plan.startDate || "")
                       setEditEndDate(plan.endDate || "")
                       setEditSubjectId(plan.subjectId || "")
@@ -344,6 +345,7 @@ export const PlannerPage: React.FC = () => {
                 </div>
               </div>
             ))}
+            </div>
           </CardContent>
         </Card>
       )}
