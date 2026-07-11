@@ -23,4 +23,16 @@ public class LearningTrackerApplication {
     public static void main(String[] args) {
         SpringApplication.run(LearningTrackerApplication.class, args);
     }
+
+    @org.springframework.context.annotation.Bean
+    public org.springframework.boot.ApplicationRunner initDatabase(org.springframework.jdbc.core.JdbcTemplate jdbcTemplate) {
+        return args -> {
+            try {
+                jdbcTemplate.execute("UPDATE learning_classes SET is_active = true WHERE is_active IS NULL OR is_active = false");
+                System.out.println("Database startup initialization: Set all learning classes active successfully!");
+            } catch (Exception e) {
+                System.err.println("Database startup initialization skipped: " + e.getMessage());
+            }
+        };
+    }
 }
