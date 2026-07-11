@@ -238,7 +238,30 @@ public class PlannerService {
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
 
         String finalStatus = (status == null || status.isBlank()) ? "all" : status.toLowerCase().trim();
-        return learningClassRepository.findByFilters(user.getId(), subjectId, search, finalStatus, pageable);
+        UUID userId = user.getId();
+
+        switch (finalStatus) {
+            case "planned":
+                return (subjectId != null)
+                        ? learningClassRepository.findPlannedWithSearchAndSubject(userId, subjectId, search, pageable)
+                        : learningClassRepository.findPlannedWithSearch(userId, search, pageable);
+            case "unplanned":
+                return (subjectId != null)
+                        ? learningClassRepository.findUnplannedWithSearchAndSubject(userId, subjectId, search, pageable)
+                        : learningClassRepository.findUnplannedWithSearch(userId, search, pageable);
+            case "completed":
+                return (subjectId != null)
+                        ? learningClassRepository.findCompletedWithSearchAndSubject(userId, subjectId, search, pageable)
+                        : learningClassRepository.findCompletedWithSearch(userId, search, pageable);
+            case "excluded":
+                return (subjectId != null)
+                        ? learningClassRepository.findExcludedWithSearchAndSubject(userId, subjectId, search, pageable)
+                        : learningClassRepository.findExcludedWithSearch(userId, search, pageable);
+            default:
+                return (subjectId != null)
+                        ? learningClassRepository.findAllWithSearchAndSubject(userId, subjectId, search, pageable)
+                        : learningClassRepository.findAllWithSearch(userId, search, pageable);
+        }
     }
 
     private void distributeClasses(User user, LearningPlan plan, List<UUID> classIds, LocalDate start, LocalDate end) {

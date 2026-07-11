@@ -20,19 +20,94 @@ public interface LearningClassRepository extends JpaRepository<LearningClass, UU
     boolean existsByUserIdAndSubjectIdAndClassNo(UUID userId, UUID subjectId, int classNo);
     long countByUserId(UUID userId);
 
+    // All
     @org.springframework.data.jpa.repository.Query("SELECT lc FROM LearningClass lc WHERE lc.user.id = :userId " +
-        "AND (:subjectId IS NULL OR lc.subject.id = :subjectId) " +
-        "AND (:search IS NULL OR :search = '' OR LOWER(lc.topic) LIKE LOWER(CONCAT('%', :search, '%'))) " +
-        "AND (:status = 'all' " +
-        "     OR (:status = 'planned' AND EXISTS (SELECT s FROM Schedule s WHERE s.learningClass.id = lc.id)) " +
-        "     OR (:status = 'unplanned' AND lc.isActive = true AND NOT EXISTS (SELECT s FROM Schedule s WHERE s.learningClass.id = lc.id)) " +
-        "     OR (:status = 'completed' AND EXISTS (SELECT s FROM Schedule s WHERE s.learningClass.id = lc.id AND s.status = com.learningtracker.constant.enums.StudyStatus.COMPLETED)) " +
-        "     OR (:status = 'excluded' AND lc.isActive = false))")
-    Page<LearningClass> findByFilters(
+           "AND (:search IS NULL OR :search = '' OR LOWER(lc.topic) LIKE LOWER(CONCAT('%', :search, '%')))")
+    Page<LearningClass> findAllWithSearch(
+        @org.springframework.data.repository.query.Param("userId") UUID userId,
+        @org.springframework.data.repository.query.Param("search") String search,
+        Pageable pageable);
+
+    @org.springframework.data.jpa.repository.Query("SELECT lc FROM LearningClass lc WHERE lc.user.id = :userId AND lc.subject.id = :subjectId " +
+           "AND (:search IS NULL OR :search = '' OR LOWER(lc.topic) LIKE LOWER(CONCAT('%', :search, '%')))")
+    Page<LearningClass> findAllWithSearchAndSubject(
         @org.springframework.data.repository.query.Param("userId") UUID userId,
         @org.springframework.data.repository.query.Param("subjectId") UUID subjectId,
         @org.springframework.data.repository.query.Param("search") String search,
-        @org.springframework.data.repository.query.Param("status") String status,
+        Pageable pageable);
+
+    // Planned
+    @org.springframework.data.jpa.repository.Query("SELECT lc FROM LearningClass lc WHERE lc.user.id = :userId " +
+           "AND (:search IS NULL OR :search = '' OR LOWER(lc.topic) LIKE LOWER(CONCAT('%', :search, '%'))) " +
+           "AND EXISTS (SELECT s FROM Schedule s WHERE s.learningClass.id = lc.id)")
+    Page<LearningClass> findPlannedWithSearch(
+        @org.springframework.data.repository.query.Param("userId") UUID userId,
+        @org.springframework.data.repository.query.Param("search") String search,
+        Pageable pageable);
+
+    @org.springframework.data.jpa.repository.Query("SELECT lc FROM LearningClass lc WHERE lc.user.id = :userId AND lc.subject.id = :subjectId " +
+           "AND (:search IS NULL OR :search = '' OR LOWER(lc.topic) LIKE LOWER(CONCAT('%', :search, '%'))) " +
+           "AND EXISTS (SELECT s FROM Schedule s WHERE s.learningClass.id = lc.id)")
+    Page<LearningClass> findPlannedWithSearchAndSubject(
+        @org.springframework.data.repository.query.Param("userId") UUID userId,
+        @org.springframework.data.repository.query.Param("subjectId") UUID subjectId,
+        @org.springframework.data.repository.query.Param("search") String search,
+        Pageable pageable);
+
+    // Unplanned
+    @org.springframework.data.jpa.repository.Query("SELECT lc FROM LearningClass lc WHERE lc.user.id = :userId " +
+           "AND lc.isActive = true " +
+           "AND (:search IS NULL OR :search = '' OR LOWER(lc.topic) LIKE LOWER(CONCAT('%', :search, '%'))) " +
+           "AND NOT EXISTS (SELECT s FROM Schedule s WHERE s.learningClass.id = lc.id)")
+    Page<LearningClass> findUnplannedWithSearch(
+        @org.springframework.data.repository.query.Param("userId") UUID userId,
+        @org.springframework.data.repository.query.Param("search") String search,
+        Pageable pageable);
+
+    @org.springframework.data.jpa.repository.Query("SELECT lc FROM LearningClass lc WHERE lc.user.id = :userId AND lc.subject.id = :subjectId " +
+           "AND lc.isActive = true " +
+           "AND (:search IS NULL OR :search = '' OR LOWER(lc.topic) LIKE LOWER(CONCAT('%', :search, '%'))) " +
+           "AND NOT EXISTS (SELECT s FROM Schedule s WHERE s.learningClass.id = lc.id)")
+    Page<LearningClass> findUnplannedWithSearchAndSubject(
+        @org.springframework.data.repository.query.Param("userId") UUID userId,
+        @org.springframework.data.repository.query.Param("subjectId") UUID subjectId,
+        @org.springframework.data.repository.query.Param("search") String search,
+        Pageable pageable);
+
+    // Completed
+    @org.springframework.data.jpa.repository.Query("SELECT lc FROM LearningClass lc WHERE lc.user.id = :userId " +
+           "AND (:search IS NULL OR :search = '' OR LOWER(lc.topic) LIKE LOWER(CONCAT('%', :search, '%'))) " +
+           "AND EXISTS (SELECT s FROM Schedule s WHERE s.learningClass.id = lc.id AND s.status = com.learningtracker.constant.enums.StudyStatus.COMPLETED)")
+    Page<LearningClass> findCompletedWithSearch(
+        @org.springframework.data.repository.query.Param("userId") UUID userId,
+        @org.springframework.data.repository.query.Param("search") String search,
+        Pageable pageable);
+
+    @org.springframework.data.jpa.repository.Query("SELECT lc FROM LearningClass lc WHERE lc.user.id = :userId AND lc.subject.id = :subjectId " +
+           "AND (:search IS NULL OR :search = '' OR LOWER(lc.topic) LIKE LOWER(CONCAT('%', :search, '%'))) " +
+           "AND EXISTS (SELECT s FROM Schedule s WHERE s.learningClass.id = lc.id AND s.status = com.learningtracker.constant.enums.StudyStatus.COMPLETED)")
+    Page<LearningClass> findCompletedWithSearchAndSubject(
+        @org.springframework.data.repository.query.Param("userId") UUID userId,
+        @org.springframework.data.repository.query.Param("subjectId") UUID subjectId,
+        @org.springframework.data.repository.query.Param("search") String search,
+        Pageable pageable);
+
+    // Excluded
+    @org.springframework.data.jpa.repository.Query("SELECT lc FROM LearningClass lc WHERE lc.user.id = :userId " +
+           "AND lc.isActive = false " +
+           "AND (:search IS NULL OR :search = '' OR LOWER(lc.topic) LIKE LOWER(CONCAT('%', :search, '%')))")
+    Page<LearningClass> findExcludedWithSearch(
+        @org.springframework.data.repository.query.Param("userId") UUID userId,
+        @org.springframework.data.repository.query.Param("search") String search,
+        Pageable pageable);
+
+    @org.springframework.data.jpa.repository.Query("SELECT lc FROM LearningClass lc WHERE lc.user.id = :userId AND lc.subject.id = :subjectId " +
+           "AND lc.isActive = false " +
+           "AND (:search IS NULL OR :search = '' OR LOWER(lc.topic) LIKE LOWER(CONCAT('%', :search, '%')))")
+    Page<LearningClass> findExcludedWithSearchAndSubject(
+        @org.springframework.data.repository.query.Param("userId") UUID userId,
+        @org.springframework.data.repository.query.Param("subjectId") UUID subjectId,
+        @org.springframework.data.repository.query.Param("search") String search,
         Pageable pageable);
 
     @org.springframework.data.jpa.repository.Modifying
