@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react"
-import { getClasses, createPlan, getPlannedClassIds, getPlans, deletePlan, updatePlan, getSubjects, toggleClassActive, getAllSchedules } from "@/api/planner"
+import { getClasses, createPlan, getPlannedClassIds, getPlans, deletePlan, updatePlan, getSubjects, toggleClassActive, activateAllClasses, getAllSchedules } from "@/api/planner"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { Search, Plus, AlertCircle, CheckCircle2, Pencil, Trash2, BookOpen, GraduationCap, EyeOff, Eye, Clock } from "lucide-react"
@@ -62,6 +62,16 @@ export const PlannerPage: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ["plannedClassIds"] })
     },
     onError: (err: any) => toast.error(err.response?.data?.message || "Failed to update lecture status."),
+  })
+
+  const activateAllMutation = useMutation({
+    mutationFn: activateAllClasses,
+    onSuccess: (data) => {
+      toast.success(`${data.activated} lecture(s) activated!`)
+      queryClient.invalidateQueries({ queryKey: ["classes"] })
+      queryClient.invalidateQueries({ queryKey: ["plannedClassIds"] })
+    },
+    onError: (err: any) => toast.error(err.response?.data?.message || "Failed to activate lectures."),
   })
 
   // Fetch IDs of classes already scheduled in any plan
@@ -143,7 +153,7 @@ export const PlannerPage: React.FC = () => {
   const handleSelectAll = (checked: any) => {
     if (classesData?.content) {
       if (checked) {
-        const pageIds = classesData.content.map((c) => String(c.id))
+        const pageIds = classesData.content.filter((c) => c.isActive).map((c) => String(c.id))
         setSelectedClasses((prev) => Array.from(new Set([...prev, ...pageIds])))
       } else {
         const pageIds = classesData.content.map((c) => String(c.id))
@@ -151,6 +161,9 @@ export const PlannerPage: React.FC = () => {
       }
     }
   }
+
+  // Check if there are any skipped classes on the current page
+  const hasSkippedClasses = classesData?.content?.some((c) => !c.isActive) ?? false
 
   const handleCreatePlan = () => {
     if (!planName.trim() || !startDate || !endDate) {
@@ -467,9 +480,23 @@ export const PlannerPage: React.FC = () => {
       <Card className="border-slate-800/60 bg-[#0b1329]/20">
         <CardHeader className="border-b border-slate-800/60 pb-3">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            <div>
-              <h3 className="text-sm font-semibold text-slate-200">Study Sessions & Lectures</h3>
-              <p className="text-xs text-slate-500 mt-0.5">Filter by study progress or skip optional lectures</p>
+            <div className="flex items-center gap-3">
+              <div>
+                <h3 className="text-sm font-semibold text-slate-200">Study Sessions & Lectures</h3>
+                <p className="text-xs text-slate-500 mt-0.5">Filter by study progress or skip optional lectures</p>
+              </div>
+              {hasSkippedClasses && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20 hover:text-emerald-300 text-xs font-semibold"
+                  onClick={() => activateAllMutation.mutate()}
+                  disabled={activateAllMutation.isPending}
+                >
+                  <Eye className="h-3.5 w-3.5 mr-1.5" />
+                  {activateAllMutation.isPending ? "Activating..." : "Activate All"}
+                </Button>
+              )}
             </div>
             <div className="flex flex-wrap gap-1 bg-slate-950/40 p-1 rounded-xl border border-slate-800/40 self-start">
               {(["all", "planned", "unplanned", "completed", "excluded"] as const).map((status) => (

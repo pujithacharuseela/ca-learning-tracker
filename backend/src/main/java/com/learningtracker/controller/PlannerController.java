@@ -110,4 +110,10 @@ public class PlannerController {
     public ResponseEntity<LearningClass> toggleClassActive(@PathVariable UUID classId) {
         return ResponseEntity.ok(plannerService.toggleClassActive(classId));
     }
+
+    @PatchMapping("/classes/activate-all")
+    public ResponseEntity<Map<String, Integer>> activateAllClasses() {
+        int count = plannerService.activateAllClasses();
+        return ResponseEntity.ok(Map.of("activated", count));
+    }
 }

@@ -370,4 +370,12 @@ public class PlannerService {
         cl.setActive(!cl.isActive());
         return learningClassRepository.save(cl);
     }
+
+    @Transactional
+    public int activateAllClasses() {
+        String email = SecurityUtils.getCurrentUserEmail();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
+        return learningClassRepository.activateAllByUserId(user.getId());
+    }
 }

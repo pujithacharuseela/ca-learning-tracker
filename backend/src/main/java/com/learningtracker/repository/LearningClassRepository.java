@@ -121,6 +121,11 @@ public interface LearningClassRepository extends JpaRepository<LearningClass, UU
         @org.springframework.data.repository.query.Param("userId") UUID userId,
         @org.springframework.data.repository.query.Param("subjectId") UUID subjectId);
 
+    /** Bulk activate all inactive classes for a user */
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.data.jpa.repository.Query("UPDATE LearningClass lc SET lc.isActive = true WHERE lc.user.id = :userId AND lc.isActive = false")
+    int activateAllByUserId(@org.springframework.data.repository.query.Param("userId") UUID userId);
+
     /** Count classes for a user linked to a specific uploaded file (for cleanup checks) */
     @org.springframework.data.jpa.repository.Query("SELECT COUNT(lc) FROM LearningClass lc WHERE lc.user.id = :userId AND lc.uploadedFile.id = :fileId")
     long countByUserIdAndUploadedFileId(

@@ -76,6 +76,11 @@ export async function toggleClassActive(classId: string): Promise<LearningClass>
   return response.data;
 }
 
+export async function activateAllClasses(): Promise<{ activated: number }> {
+  const response = await apiClient.patch<{ activated: number }>('/planner/classes/activate-all');
+  return response.data;
+}
+
 export async function getPlannedClassIds(): Promise<string[]> {
   const response = await apiClient.get<string[]>('/planner/classes/planned-ids');
   return response.data;
