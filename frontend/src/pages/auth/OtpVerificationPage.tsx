@@ -43,7 +43,7 @@ export const OtpVerificationPage: React.FC = () => {
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl font-bold text-center">Verify Email</CardTitle>
         <CardDescription className="text-center">
-          Enter the 6-digit OTP code sent to **{email || "your email"}**
+          Enter the 6-digit OTP code sent to <strong className="font-semibold text-slate-700 dark:text-slate-300">{email || "your email"}</strong>
         </CardDescription>
       </CardHeader>
       <CardContent>

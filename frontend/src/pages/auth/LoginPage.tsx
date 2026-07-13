@@ -59,7 +59,6 @@ export const LoginPage: React.FC = () => {
                       <Input
                         placeholder="name@example.com"
                         type="email"
-                        style={{ paddingLeft: "2.5rem" }}
                         className="pl-10"
                         {...field}
                       />
@@ -90,7 +89,6 @@ export const LoginPage: React.FC = () => {
                       <Input
                         placeholder="••••••••"
                         type="password"
-                        style={{ paddingLeft: "2.5rem" }}
                         className="pl-10"
                         {...field}
                       />
