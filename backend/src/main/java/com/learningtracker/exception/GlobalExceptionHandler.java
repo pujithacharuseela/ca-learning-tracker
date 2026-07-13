@@ -137,6 +137,62 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Handles Spring Security's BadCredentialsException (incorrect password or user not found)
+     */
+    @ExceptionHandler(org.springframework.security.authentication.BadCredentialsException.class)
+    public ResponseEntity<ApiErrorResponse> handleBadCredentials(
+            org.springframework.security.authentication.BadCredentialsException ex, WebRequest request) {
+
+        ApiErrorResponse response = ApiErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.UNAUTHORIZED.value())
+                .message("Invalid email or password.")
+                .path(request.getDescription(false).replace("uri=", ""))
+                .build();
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+    }
+
+    /**
+     * Handles Spring Security's UsernameNotFoundException
+     */
+    @ExceptionHandler(org.springframework.security.core.userdetails.UsernameNotFoundException.class)
+    public ResponseEntity<ApiErrorResponse> handleUsernameNotFound(
+            org.springframework.security.core.userdetails.UsernameNotFoundException ex, WebRequest request) {
+
+        ApiErrorResponse response = ApiErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.UNAUTHORIZED.value())
+                .message(ex.getMessage())
+                .path(request.getDescription(false).replace("uri=", ""))
+                .build();
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+    }
+
+    /**
+     * Handles Spring Security's InternalAuthenticationServiceException (e.g. wrapped UsernameNotFoundException)
+     */
+    @ExceptionHandler(org.springframework.security.authentication.InternalAuthenticationServiceException.class)
+    public ResponseEntity<ApiErrorResponse> handleInternalAuthService(
+            org.springframework.security.authentication.InternalAuthenticationServiceException ex, WebRequest request) {
+
+        String message = "Invalid email or password.";
+        if (ex.getCause() != null) {
+            message = ex.getCause().getMessage();
+        }
+
+        ApiErrorResponse response = ApiErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.UNAUTHORIZED.value())
+                .message(message)
+                .path(request.getDescription(false).replace("uri=", ""))
+                .build();
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+    }
+
+    /**
      * Handles Spring Security access denied errors.
      */
     @ExceptionHandler(AccessDeniedException.class)
