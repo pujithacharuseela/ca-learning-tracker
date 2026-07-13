@@ -342,18 +342,18 @@ export const PlannerPage: React.FC = () => {
         <Card className="border-slate-800/60 bg-[#0b1329]/40">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-semibold text-slate-400 flex items-center gap-2">
-              <BookOpen className="h-4 w-4 text-violet-400" /> Active Plans
+              <BookOpen className="h-4 w-4 text-violet-400" /> Active Study Plans
             </CardTitle>
           </CardHeader>
           <CardContent className="max-h-[260px] overflow-y-auto pr-1 space-y-0">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
               {plans.map((plan) => (
                 <div key={plan.id} className="flex items-center justify-between bg-[#070d1e]/60 border border-slate-800/60 rounded-xl px-4 py-3">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-semibold text-slate-200">{plan.name}</p>
+                  <div className="flex-1 min-w-0 pr-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="text-sm font-semibold text-slate-200 truncate">{plan.name}</p>
                       {plan.subjectName && (
-                        <Badge style={{ backgroundColor: `${plan.subjectColor}20`, color: plan.subjectColor, borderColor: `${plan.subjectColor}40` }} className="text-[10px] py-0 border">
+                        <Badge style={{ backgroundColor: `${plan.subjectColor}20`, color: plan.subjectColor, borderColor: `${plan.subjectColor}40` }} className="text-[10px] py-0 border shrink-0">
                           {plan.subjectName}
                         </Badge>
                       )}
@@ -648,10 +648,12 @@ export const PlannerPage: React.FC = () => {
                           )}
                         </td>
                         <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
-                          <div className="flex items-center gap-1 justify-end">
+                          <div className="flex items-center gap-1 justify-end h-8">
                             {/* Completed lectures — no actions needed */}
                             {isCompleted ? (
-                              <span className="text-emerald-500/60 text-[10px] font-medium italic">Done</span>
+                              <span className="text-emerald-500/80 text-xs font-semibold px-3 py-1.5 inline-flex items-center gap-1.5">
+                                <CheckCircle2 className="h-3.5 w-3.5" /> Done
+                              </span>
                             ) : isPlanned && schedule ? (
                               /* Scheduled lectures — Mark Complete button */
                               <Button

@@ -2,7 +2,8 @@ import React, { useState } from "react"
 import { uploadExcelPreview, confirmExcelImport, getUploadHistory, resetUserData, getSubjects } from "@/api/planner"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-import { Upload, FileSpreadsheet, CheckCircle2, AlertTriangle, History, Trash2 } from "lucide-react"
+import { Upload, FileSpreadsheet, CheckCircle2, AlertTriangle, History, Trash2, Eye } from "lucide-react"
+import { useNavigate } from "react-router-dom"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
@@ -12,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 
 export const UploadPage: React.FC = () => {
   const queryClient = useQueryClient()
+  const navigate = useNavigate()
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<any>(null)
   const [selectedSubjectId, setSelectedSubjectId] = useState<string>("")
@@ -249,21 +251,35 @@ export const UploadPage: React.FC = () => {
                       </button>
                     )}
                   </label>
-                  <Select value={selectedSubjectId} onValueChange={setSelectedSubjectId}>
-                    <SelectTrigger className="bg-[#0b1329] border-slate-800 text-slate-200">
-                      <SelectValue placeholder="Choose subject to assign classes..." />
-                    </SelectTrigger>
-                    <SelectContent className="bg-[#0b1329] border-slate-800 text-slate-200">
-                      {subjects?.map((s) => (
-                        <SelectItem key={s.id} value={s.id}>
-                          <span className="flex items-center gap-2">
-                            <span className="h-2 w-2 rounded-full" style={{ backgroundColor: s.color }} />
-                            {s.name}
-                          </span>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  {!subjects || subjects.length === 0 ? (
+                    <div className="bg-amber-500/10 border border-amber-500/20 p-4 rounded-xl text-center space-y-3">
+                      <p className="text-sm text-amber-400 font-medium">
+                        ⚠️ No subjects found. You must create at least one subject (paper) before importing your study plan Excel.
+                      </p>
+                      <Button
+                        onClick={() => navigate("/subjects")}
+                        className="bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-semibold px-4 py-2"
+                      >
+                        Create Subjects Now
+                      </Button>
+                    </div>
+                  ) : (
+                    <Select value={selectedSubjectId} onValueChange={setSelectedSubjectId}>
+                      <SelectTrigger className="bg-[#0b1329] border-slate-800 text-slate-200">
+                        <SelectValue placeholder="Choose subject to assign classes..." />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#0b1329] border-slate-800 text-slate-200">
+                        {subjects?.map((s) => (
+                          <SelectItem key={s.id} value={s.id}>
+                            <span className="flex items-center gap-2">
+                              <span className="h-2 w-2 rounded-full" style={{ backgroundColor: s.color }} />
+                              {s.name}
+                            </span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
 
                 <div
