@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react"
-import { getClasses, createPlan, getPlannedClassIds, getPlans, deletePlan, updatePlan, getSubjects, toggleClassActive, activateAllClasses, getAllSchedules } from "@/api/planner"
+import { getClasses, createPlan, getPlannedClassIds, getPlans, deletePlan, updatePlan, getSubjects, toggleClassActive, activateAllClasses, getAllSchedules, completeSchedule } from "@/api/planner"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { Search, Plus, AlertCircle, CheckCircle2, Pencil, Trash2, BookOpen, GraduationCap, EyeOff, Eye, Clock } from "lucide-react"
@@ -94,6 +94,30 @@ export const PlannerPage: React.FC = () => {
     )
   }, [allSchedules])
 
+  // Map classId -> schedule for quick lookup (used for Mark Complete action)
+  const classScheduleMap = useMemo(() => {
+    if (!allSchedules) return new Map<string, typeof allSchedules[0]>()
+    const map = new Map<string, typeof allSchedules[0]>()
+    for (const s of allSchedules) {
+      // Keep the latest non-completed schedule for each class
+      if (!map.has(String(s.classId)) || s.status !== "COMPLETED") {
+        map.set(String(s.classId), s)
+      }
+    }
+    return map
+  }, [allSchedules])
+
+  const completeScheduleMutation = useMutation({
+    mutationFn: completeSchedule,
+    onSuccess: () => {
+      toast.success("Lecture marked as completed!")
+      queryClient.invalidateQueries({ queryKey: ["classes"] })
+      queryClient.invalidateQueries({ queryKey: ["allSchedules"] })
+      queryClient.invalidateQueries({ queryKey: ["plannedClassIds"] })
+    },
+    onError: (err: any) => toast.error(err.response?.data?.message || "Failed to mark as completed."),
+  })
+
   // Fetch all plans for management panel
   const { data: plans } = useQuery({
     queryKey: ["plans"],
@@ -153,7 +177,10 @@ export const PlannerPage: React.FC = () => {
   const handleSelectAll = (checked: any) => {
     if (classesData?.content) {
       if (checked) {
-        const pageIds = classesData.content.filter((c) => c.isActive).map((c) => String(c.id))
+        // Only select active lectures that are NOT already scheduled or completed
+        const pageIds = classesData.content
+          .filter((c) => c.isActive && !plannedSet.has(String(c.id)) && !completedClassIds.has(String(c.id)))
+          .map((c) => String(c.id))
         setSelectedClasses((prev) => Array.from(new Set([...prev, ...pageIds])))
       } else {
         const pageIds = classesData.content.map((c) => String(c.id))
@@ -549,19 +576,23 @@ export const PlannerPage: React.FC = () => {
                     const isPlanned = plannedSet.has(String(cl.id))
                     const isCompleted = completedClassIds.has(String(cl.id))
                     const isActive = cl.isActive
+                    const canSelect = isActive && !isPlanned && !isCompleted
+                    const schedule = classScheduleMap.get(String(cl.id))
 
                     return (
                       <tr
                         key={cl.id}
-                        className={`hover:bg-[#070d1e]/80 cursor-pointer transition-colors ${
+                        className={`hover:bg-[#070d1e]/80 transition-colors ${
                           isSelected ? "bg-violet-600/10" : ""
-                        } ${!isActive ? "opacity-50 bg-slate-950/20" : ""}`}
+                        } ${!isActive ? "opacity-50 bg-slate-950/20" : ""} ${
+                          canSelect ? "cursor-pointer" : "cursor-default"
+                        }`}
                         onClick={() => {
                           if (!isActive) {
                             toggleActiveMutation.mutate(cl.id, {
                               onSuccess: () => toggleSelectClass(String(cl.id))
                             })
-                          } else {
+                          } else if (canSelect) {
                             toggleSelectClass(String(cl.id))
                           }
                         }}
@@ -569,12 +600,13 @@ export const PlannerPage: React.FC = () => {
                         <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                           <Checkbox
                             checked={isSelected}
+                            disabled={!canSelect}
                             onCheckedChange={() => {
                               if (!isActive) {
                                 toggleActiveMutation.mutate(cl.id, {
                                   onSuccess: () => toggleSelectClass(String(cl.id))
                                 })
-                              } else {
+                              } else if (canSelect) {
                                 toggleSelectClass(String(cl.id))
                               }
                             }}
@@ -616,27 +648,46 @@ export const PlannerPage: React.FC = () => {
                           )}
                         </td>
                         <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className={`flex items-center gap-1.5 ml-auto rounded-lg text-xs font-semibold ${
-                              isActive
-                                ? "text-slate-400 hover:text-rose-400 hover:bg-rose-500/10"
-                                : "text-emerald-450 hover:text-emerald-350 hover:bg-emerald-500/10"
-                            }`}
-                            onClick={() => toggleActiveMutation.mutate(cl.id)}
-                            disabled={toggleActiveMutation.isPending}
-                          >
-                            {isActive ? (
-                              <>
-                                <EyeOff className="h-3.5 w-3.5" /> Skip Topic
-                              </>
+                          <div className="flex items-center gap-1 justify-end">
+                            {/* Completed lectures — no actions needed */}
+                            {isCompleted ? (
+                              <span className="text-emerald-500/60 text-[10px] font-medium italic">Done</span>
+                            ) : isPlanned && schedule ? (
+                              /* Scheduled lectures — Mark Complete button */
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="flex items-center gap-1.5 rounded-lg text-xs font-semibold text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10"
+                                onClick={() => completeScheduleMutation.mutate(schedule.id)}
+                                disabled={completeScheduleMutation.isPending}
+                              >
+                                <CheckCircle2 className="h-3.5 w-3.5" /> Mark Complete
+                              </Button>
                             ) : (
-                              <>
-                                <Eye className="h-3.5 w-3.5" /> Include
-                              </>
+                              /* Remaining/Skipped lectures — Skip/Include toggle */
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className={`flex items-center gap-1.5 rounded-lg text-xs font-semibold ${
+                                  isActive
+                                    ? "text-slate-400 hover:text-rose-400 hover:bg-rose-500/10"
+                                    : "text-emerald-450 hover:text-emerald-350 hover:bg-emerald-500/10"
+                                }`}
+                                onClick={() => toggleActiveMutation.mutate(cl.id)}
+                                disabled={toggleActiveMutation.isPending}
+                              >
+                                {isActive ? (
+                                  <>
+                                    <EyeOff className="h-3.5 w-3.5" /> Skip Topic
+                                  </>
+                                ) : (
+                                  <>
+                                    <Eye className="h-3.5 w-3.5" /> Include
+                                  </>
+                                )}
+                              </Button>
                             )}
-                          </Button>
+                          </div>
                         </td>
                       </tr>
                     )
