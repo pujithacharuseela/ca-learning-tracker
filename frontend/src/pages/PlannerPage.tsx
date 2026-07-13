@@ -557,14 +557,27 @@ export const PlannerPage: React.FC = () => {
                           isSelected ? "bg-violet-600/10" : ""
                         } ${!isActive ? "opacity-50 bg-slate-950/20" : ""}`}
                         onClick={() => {
-                          if (isActive) toggleSelectClass(String(cl.id))
+                          if (!isActive) {
+                            toggleActiveMutation.mutate(cl.id, {
+                              onSuccess: () => toggleSelectClass(String(cl.id))
+                            })
+                          } else {
+                            toggleSelectClass(String(cl.id))
+                          }
                         }}
                       >
                         <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                           <Checkbox
                             checked={isSelected}
-                            disabled={!isActive}
-                            onCheckedChange={() => toggleSelectClass(String(cl.id))}
+                            onCheckedChange={() => {
+                              if (!isActive) {
+                                toggleActiveMutation.mutate(cl.id, {
+                                  onSuccess: () => toggleSelectClass(String(cl.id))
+                                })
+                              } else {
+                                toggleSelectClass(String(cl.id))
+                              }
+                            }}
                           />
                         </td>
                         <td className="px-6 py-4 font-semibold text-slate-200">{cl.classNo}</td>
