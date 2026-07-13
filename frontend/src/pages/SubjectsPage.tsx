@@ -186,15 +186,24 @@ export const SubjectsPage: React.FC = () => {
                         )}
                       </div>
                     </div>
-                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button size="icon" variant="ghost" className="h-7 w-7 text-slate-500 hover:text-indigo-400" onClick={() => openEdit(subject)}>
+                    <div className="flex gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7 text-slate-400 hover:text-indigo-400"
+                        onClick={() => openEdit(subject)}
+                        disabled={deleteMutation.isPending}
+                      >
                         <Pencil className="h-3.5 w-3.5" />
                       </Button>
                       <Button
-                        size="icon" variant="ghost" className="h-7 w-7 text-slate-500 hover:text-rose-400"
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7 text-slate-400 hover:text-rose-400"
                         disabled={deleteMutation.isPending}
                         onClick={() => {
-                          if (window.confirm(`Delete subject "${subject.name}"?`)) {
+                          const confirmMsg = `Are you sure you want to delete subject "${subject.name}"?\n\nWARNING: Deleting this subject will permanently delete all associated lectures, study plans, schedules, and progress tracking data. This action cannot be undone.`;
+                          if (window.confirm(confirmMsg)) {
                             deleteMutation.mutate(subject.id)
                           }
                         }}
