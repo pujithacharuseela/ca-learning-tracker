@@ -1,6 +1,7 @@
 package com.learningtracker.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -47,5 +48,6 @@ public class LearningClass extends BaseEntity {
 
     @Column(name = "is_active", nullable = false)
     @Builder.Default
+    @JsonProperty("isActive")
     private boolean isActive = true;
 }
