@@ -96,8 +96,8 @@ export const PlannerPage: React.FC = () => {
 
   // Map classId -> schedule for quick lookup (used for Mark Complete action)
   const classScheduleMap = useMemo(() => {
-    if (!allSchedules) return new Map<string, typeof allSchedules[0]>()
-    const map = new Map<string, typeof allSchedules[0]>()
+    if (!allSchedules) return new Map<string, any>()
+    const map = new Map<string, any>()
     for (const s of allSchedules) {
       // Keep the latest non-completed schedule for each class
       if (!map.has(String(s.classId)) || s.status !== "COMPLETED") {
