@@ -64,7 +64,7 @@ public class DatabaseConfig {
     @Bean
     public DataSource backupDataSource() {
         HikariConfig config = new HikariConfig();
-        config.setJdbcUrl("jdbc:h2:file:./target/learningtracker_backup;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDER=HIGH");
+        config.setJdbcUrl("jdbc:h2:file:./target/learningtracker_backup;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE");
         config.setUsername("sa");
         config.setPassword("");
         config.setDriverClassName("org.h2.Driver");
