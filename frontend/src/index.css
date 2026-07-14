@@ -97,7 +97,15 @@ body {
 .light .bg-slate-950 { background-color: #e2e8f0 !important; }
 
 /* Fix table header dark bg */
-.light .bg-\[\#070d1e\] { background-color: #f8fafc !important; }
+.light .bg-\[\#070d1e\] { background-color: #f1f5f9 !important; }
+.light .text-slate-400 { color: #475569 !important; }
+.light .divide-slate-800\/80 > * + * { border-color: #cbd5e1 !important; }
+.light .divide-slate-800\/80 { border-color: #cbd5e1 !important; }
+.light tr.bg-slate-950\/20 { background-color: rgba(241, 245, 249, 0.5) !important; }
+.light tr.opacity-50 { opacity: 0.75 !important; }
+.light .bg-slate-950\/40 { background-color: #f1f5f9 !important; }
+.light button.text-slate-400:hover { background-color: #e2e8f0 !important; color: #0f172a !important; }
+.light .bg-violet-600\/10 { background-color: rgba(139, 92, 246, 0.1) !important; }
 
 /* Fix input backgrounds */
 .light input[class*="bg-[#020617]"],
@@ -129,6 +137,23 @@ body {
   color: #0f172a !important;
   border-color: #e2e8f0 !important;
 }
+
+.light [data-slot="select-content"],
+.light [data-slot="select-item"] {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+.light [data-slot="card"] .text-slate-200,
+.light [data-slot="card"] .text-slate-300 {
+  color: #1e293b !important;
+}
+
+.light [data-slot="card"] .bg-\[\#0b1329\]\/20 {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
 
 /* Fix sidebar in light mode */
 .light aside { 
