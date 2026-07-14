@@ -129,7 +129,7 @@ body {
 .light button.bg-slate-950,
 .light .bg-slate-950 button {
   background-color: #f1f5f9 !important;
-  color: #475569 !important;
+  color: #1e293b !important;
   border: 1px solid #cbd5e1 !important;
 }
 .light button.bg-slate-900:hover,
@@ -137,6 +137,19 @@ body {
   background-color: #e2e8f0 !important;
   color: #0f172a !important;
 }
+
+/* Fix default button theme visibility */
+.light button[class*="bg-[#020617]"],
+.light button[class*="bg-[#0b1329]"] {
+  background-color: #f1f5f9 !important;
+  color: #1e293b !important;
+  border-color: #cbd5e1 !important;
+}
+
+.light button:not(.bg-violet-600):not(.bg-emerald-500):not(.bg-rose-500):not(.bg-indigo-600) {
+  color: #1e293b !important;
+}
+
 
 /* Fix table header dark bg */
 .light .bg-\[\#070d1e\] { background-color: #f1f5f9 !important; }

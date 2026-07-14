@@ -13,8 +13,26 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 export const DashboardPage: React.FC = () => {
   const queryClient = useQueryClient()
-  const [activeSession, setActiveSession] = useState<any>(null)
-  const [seconds, setSeconds] = useState(0)
+  
+  // Load initial active session and seconds from local storage to survive refreshes/rebuilds
+  const [activeSession, setActiveSession] = useState<any>(() => {
+    const saved = localStorage.getItem("active_study_session")
+    return saved ? JSON.parse(saved) : null
+  })
+  
+  const [seconds, setSeconds] = useState<number>(() => {
+    const savedSecs = localStorage.getItem("active_study_session_seconds")
+    if (savedSecs && localStorage.getItem("active_study_session")) {
+      // Calculate elapsed time since start if session is active
+      const savedSession = JSON.parse(localStorage.getItem("active_study_session")!)
+      if (savedSession.startedAt) {
+        const elapsed = Math.floor((Date.now() - new Date(savedSession.startedAt).getTime()) / 1000)
+        return elapsed > 0 ? elapsed : Number(savedSecs)
+      }
+      return Number(savedSecs)
+    }
+    return 0
+  })
 
   // Complete Session Modal State
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -33,8 +51,11 @@ export const DashboardPage: React.FC = () => {
   const startMutation = useMutation({
     mutationFn: startSession,
     onSuccess: (data) => {
-      setActiveSession(data)
+      const sessionData = { ...data, startedAt: new Date().toISOString() }
+      setActiveSession(sessionData)
       setSeconds(0)
+      localStorage.setItem("active_study_session", JSON.stringify(sessionData))
+      localStorage.setItem("active_study_session_seconds", "0")
       toast.success("Study session started! Timer is active.")
     },
     onError: (err: any) => {
@@ -60,7 +81,10 @@ export const DashboardPage: React.FC = () => {
       toast.success("Study session saved successfully!")
       setIsModalOpen(false)
       setActiveSession(null)
+      setSeconds(0)
       setNotes("")
+      localStorage.removeItem("active_study_session")
+      localStorage.removeItem("active_study_session_seconds")
       queryClient.invalidateQueries({ queryKey: ["dashboard"] })
       queryClient.invalidateQueries({ queryKey: ["analytics"], exact: false })
       queryClient.invalidateQueries({ queryKey: ["allSchedules"] })
@@ -76,7 +100,11 @@ export const DashboardPage: React.FC = () => {
     let interval: any = null
     if (activeSession && activeSession.status === "IN_PROGRESS") {
       interval = setInterval(() => {
-        setSeconds((prev) => prev + 1)
+        setSeconds((prev) => {
+          const next = prev + 1
+          localStorage.setItem("active_study_session_seconds", String(next))
+          return next
+        })
       }, 1000)
     } else {
       clearInterval(interval)
