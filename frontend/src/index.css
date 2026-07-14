@@ -92,9 +92,51 @@ body {
 .light .hover\:bg-slate-900:hover { background-color: #f1f5f9 !important; }
 
 /* Fix dark cards in light mode */
-.light .bg-\[\#0b1329\]\/60 { background-color: rgba(248,250,252,0.95) !important; }
+.light .bg-\[\#0b1329\]\/60 { background-color: rgba(255,255,255,0.95) !important; }
 .light .bg-slate-800\/25 { background-color: rgba(241,245,249,0.8) !important; }
-.light .bg-slate-950 { background-color: #e2e8f0 !important; }
+.light .bg-slate-950 { background-color: #f1f5f9 !important; border-color: #cbd5e1 !important; color: #0f172a !important; }
+.light .bg-slate-950\/40 { background-color: #f1f5f9 !important; border-color: #cbd5e1 !important; }
+
+/* Calendar & Planner Filters Light mode fixes */
+.light .bg-indigo-50\/20 {
+  background-color: #f0fdf4 !important; /* light green for active tracking */
+  border-color: #bbf7d0 !important;
+}
+.light .bg-indigo-50\/20 * {
+  color: #166534 !important; /* green text */
+}
+.light .bg-indigo-50\/20 button {
+  background-color: #166534 !important;
+  color: #ffffff !important;
+}
+.light .bg-indigo-50\/20 span.font-mono {
+  color: #166534 !important;
+}
+
+.light .bg-slate-900 {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+.light .border-slate-800 {
+  border-color: #cbd5e1 !important;
+}
+
+/* Calendar Filter buttons override */
+.light .bg-slate-900\/45,
+.light button.bg-slate-900,
+.light button.bg-slate-950,
+.light .bg-slate-950 button {
+  background-color: #f1f5f9 !important;
+  color: #475569 !important;
+  border: 1px solid #cbd5e1 !important;
+}
+.light button.bg-slate-900:hover,
+.light button.bg-slate-950:hover {
+  background-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
 
 /* Fix table header dark bg */
 .light .bg-\[\#070d1e\] { background-color: #f1f5f9 !important; }
