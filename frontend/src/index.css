@@ -146,9 +146,9 @@ body {
   border-color: #cbd5e1 !important;
 }
 
-.light button:not(.bg-violet-600):not(.bg-emerald-500):not(.bg-rose-500):not(.bg-indigo-600) {
-  color: #1e293b !important;
-}
+.light .bg-slate-800 { background-color: #e2e8f0 !important; color: #1e293b !important; }
+.light .bg-slate-700 { background-color: #cbd5e1 !important; }
+.light .hover\:bg-slate-700:hover { background-color: #cbd5e1 !important; }
 
 
 /* Fix table header dark bg */

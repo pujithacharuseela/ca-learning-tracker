@@ -60,6 +60,17 @@ public class DashboardService {
                         .build())
                 .collect(Collectors.toList());
 
+        // Active Session - check if user has an IN_PROGRESS study session
+        DashboardResponse.ActiveSessionInfo activeSessionInfo = studySessionRepository
+                .findFirstByUserIdAndStatusOrderByStartedAtDesc(user.getId(), StudyStatus.IN_PROGRESS)
+                .map(session -> DashboardResponse.ActiveSessionInfo.builder()
+                        .sessionId(session.getId().toString())
+                        .scheduleId(session.getSchedule().getId().toString())
+                        .status("IN_PROGRESS")
+                        .startedAt(session.getStartedAt().toString())
+                        .build())
+                .orElse(null);
+
         return DashboardResponse.builder()
                 .currentStreak(currentStreak)
                 .longestStreak(longestStreak)
@@ -69,6 +80,7 @@ public class DashboardService {
                 .todayTasks(todaySchedules.stream().map(this::mapToScheduleResponse).collect(Collectors.toList()))
                 .upcomingTasks(upcomingSchedules.stream().map(this::mapToScheduleResponse).collect(Collectors.toList()))
                 .recentBadges(badges)
+                .activeSession(activeSessionInfo)
                 .build();
     }
 

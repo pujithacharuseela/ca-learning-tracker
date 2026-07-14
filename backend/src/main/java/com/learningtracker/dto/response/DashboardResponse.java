@@ -20,6 +20,18 @@ public class DashboardResponse {
     private List<ScheduleResponse> todayTasks;
     private List<ScheduleResponse> upcomingTasks;
     private List<BadgeResponse> recentBadges;
+    private ActiveSessionInfo activeSession;
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ActiveSessionInfo {
+        private String sessionId;
+        private String scheduleId;
+        private String status;
+        private String startedAt;
+    }
 
     @Data
     @Builder

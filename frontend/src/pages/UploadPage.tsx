@@ -308,7 +308,7 @@ export const UploadPage: React.FC = () => {
               <div className="space-y-6">
                 {/* Stats Summary */}
                 <div className="grid grid-cols-3 gap-4">
-                  <div className="bg-slate-800/25 border border-slate-800 p-4 rounded-xl text-center">
+                  <div className="bg-slate-100 dark:bg-slate-800/25 border border-slate-200 dark:border-slate-800 p-4 rounded-xl text-center">
                     <span className="text-xs uppercase tracking-wider font-semibold text-slate-400">Total Rows</span>
                     <p className="text-2xl font-bold mt-1 text-slate-200">
                       {preview.totalRows}
@@ -415,7 +415,7 @@ export const UploadPage: React.FC = () => {
                         size="sm"
                         onClick={() => setPreviewPage(p => Math.max(1, p - 1))}
                         disabled={previewPage === 1}
-                        className="border-slate-800 hover:bg-slate-900 text-xs"
+                        className="border-slate-300 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-900 text-xs"
                       >
                         Previous
                       </Button>
@@ -424,7 +424,7 @@ export const UploadPage: React.FC = () => {
                         size="sm"
                         onClick={() => setPreviewPage(p => Math.min(totalPreviewPages, p + 1))}
                         disabled={previewPage === totalPreviewPages}
-                        className="border-slate-800 hover:bg-slate-900 text-xs"
+                        className="border-slate-300 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-900 text-xs"
                       >
                         Next
                       </Button>

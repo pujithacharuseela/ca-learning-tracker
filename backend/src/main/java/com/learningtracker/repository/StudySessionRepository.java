@@ -9,12 +9,15 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
 public interface StudySessionRepository extends JpaRepository<StudySession, UUID> {
     List<StudySession> findByScheduleId(UUID scheduleId);
     long countByUserIdAndStatus(UUID userId, com.learningtracker.constant.enums.StudyStatus status);
+
+    Optional<StudySession> findFirstByUserIdAndStatusOrderByStartedAtDesc(UUID userId, com.learningtracker.constant.enums.StudyStatus status);
 
     @Query("SELECT SUM(s.actualDurationMinutes) FROM StudySession s WHERE s.user.id = :userId AND s.status = 'COMPLETED'")
     Integer sumActualDurationMinutesByUserId(@Param("userId") UUID userId);

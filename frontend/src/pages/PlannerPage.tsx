@@ -327,7 +327,7 @@ export const PlannerPage: React.FC = () => {
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setIsOpen(false)} className="border-slate-800 hover:bg-slate-900 text-slate-300">Cancel</Button>
+                <Button variant="outline" onClick={() => setIsOpen(false)} className="border-slate-300 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-900 text-slate-600 dark:text-slate-300">Cancel</Button>
                 <Button onClick={handleCreatePlan} disabled={createPlanMutation.isPending} className="bg-violet-600 hover:bg-violet-500">
                   {createPlanMutation.isPending ? "Scheduling..." : "Schedule Distribution"}
                 </Button>
@@ -533,7 +533,7 @@ export const PlannerPage: React.FC = () => {
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all ${
                     statusFilter === status
                       ? "bg-violet-600 text-white shadow-md shadow-violet-600/10"
-                      : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/45"
+                      : "text-slate-400 hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-900/45"
                   }`}
                 >
                   {status === "all" ? "All Lectures" : status === "planned" ? "Scheduled" : status === "unplanned" ? "Remaining" : status === "completed" ? "Completed" : "Skipped"}
@@ -622,8 +622,8 @@ export const PlannerPage: React.FC = () => {
                             <span className="text-slate-600 text-xs">—</span>
                           )}
                         </td>
-                        <td className="px-6 py-4 text-slate-300 font-medium">{cl.topic}</td>
-                        <td className="px-6 py-4 text-slate-400">{cl.durationDisplay}</td>
+                        <td className="px-6 py-4 text-slate-700 dark:text-slate-300 font-medium">{cl.topic}</td>
+                        <td className="px-6 py-4 text-slate-500 dark:text-slate-400">{cl.durationDisplay}</td>
                         <td className="px-6 py-4">
                           {!isActive ? (
                             <Badge variant="outline" className="bg-rose-500/10 text-rose-400 border-rose-500/20 text-[10px]">
@@ -642,7 +642,7 @@ export const PlannerPage: React.FC = () => {
                               <Clock className="h-3.5 w-3.5 text-indigo-400" /> Scheduled
                             </span>
                           ) : (
-                            <Badge variant="outline" className="bg-slate-800 text-slate-400 border-slate-700 text-[10px]">
+                            <Badge variant="outline" className="bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-300 dark:border-slate-700 text-[10px]">
                               Remaining
                             </Badge>
                           )}

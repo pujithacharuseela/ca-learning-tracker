@@ -332,11 +332,12 @@ export const CalendarPage: React.FC = () => {
                       const allCompleted = hasTasks && completedCount === dayTasks.length
                       const partiallyCompleted = hasTasks && completedCount > 0 && completedCount < dayTasks.length
 
+                       const isLightMode = document.documentElement.classList.contains('light')
                        const getSquareColor = () => {
                         if (allCompleted) return "#10b981" // Emerald-500
-                        if (partiallyCompleted) return "#047857" // Emerald-700
-                        if (hasTasks) return "#475569" // Slate-600 (Scheduled but 0%)
-                        return "#1e293b" // Slate-800 (No tasks)
+                        if (partiallyCompleted) return isLightMode ? "#059669" : "#047857"
+                        if (hasTasks) return isLightMode ? "#94a3b8" : "#475569"
+                        return isLightMode ? "#e2e8f0" : "#1e293b"
                       }
 
                       return (
@@ -355,9 +356,9 @@ export const CalendarPage: React.FC = () => {
             {/* Color key legend */}
             <div className="flex items-center gap-1.5 text-[10px] text-slate-500 self-end pr-2 font-medium">
               <span>Less</span>
-              <div className="h-[9px] w-[9px] rounded-[1.5px] border border-slate-900/10" style={{ backgroundColor: "#1e293b" }} title="No tasks scheduled" />
-              <div className="h-[9px] w-[9px] rounded-[1.5px] border border-slate-900/10" style={{ backgroundColor: "#475569" }} title="Tasks scheduled, 0% complete" />
-              <div className="h-[9px] w-[9px] rounded-[1.5px] border border-slate-900/10" style={{ backgroundColor: "#047857" }} title="Partially completed" />
+              <div className="h-[9px] w-[9px] rounded-[1.5px] border border-slate-900/10" style={{ backgroundColor: document.documentElement.classList.contains('light') ? "#e2e8f0" : "#1e293b" }} title="No tasks scheduled" />
+              <div className="h-[9px] w-[9px] rounded-[1.5px] border border-slate-900/10" style={{ backgroundColor: document.documentElement.classList.contains('light') ? "#94a3b8" : "#475569" }} title="Tasks scheduled, 0% complete" />
+              <div className="h-[9px] w-[9px] rounded-[1.5px] border border-slate-900/10" style={{ backgroundColor: document.documentElement.classList.contains('light') ? "#059669" : "#047857" }} title="Partially completed" />
               <div className="h-[9px] w-[9px] rounded-[1.5px] border border-slate-900/10" style={{ backgroundColor: "#10b981" }} title="Fully completed day" />
               <span>More</span>
             </div>
@@ -366,7 +367,7 @@ export const CalendarPage: React.FC = () => {
       </Card>
 
       {/* Filters Bar */}
-      <Card className="border-slate-800/60 bg-[#0b1329]/40">
+      <Card className="border-slate-800/60 bg-white/80 dark:bg-[#0b1329]/40">
         <CardContent className="py-4 flex flex-wrap gap-3 items-center">
           <div className="flex items-center gap-2 text-slate-400 text-sm font-medium">
             <Filter className="h-4 w-4" /> Filter:
@@ -380,7 +381,7 @@ export const CalendarPage: React.FC = () => {
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                   filterType === t
                     ? "bg-violet-600 text-white"
-                    : "bg-slate-800 text-slate-400 hover:bg-slate-700"
+                    : "bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-300 dark:hover:bg-slate-700"
                 }`}
               >
                 {t === "all" ? "All Plans" : t === "subject" ? "By Subject" : "By Plan"}
@@ -391,10 +392,10 @@ export const CalendarPage: React.FC = () => {
           {/* Subject filter */}
           {filterType === "subject" && subjects && subjects.length > 0 && (
             <Select value={filterSubjectId} onValueChange={setFilterSubjectId}>
-              <SelectTrigger className="bg-[#020617] border-slate-800 text-slate-200 w-48 h-8 text-xs">
+              <SelectTrigger className="bg-white dark:bg-[#020617] border-slate-800 text-slate-200 w-48 h-8 text-xs">
                 <SelectValue placeholder="Select subject..." />
               </SelectTrigger>
-              <SelectContent className="bg-[#0b1329] border-slate-800 text-slate-200">
+              <SelectContent className="bg-white dark:bg-[#0b1329] border-slate-800 text-slate-200">
                 {subjects.map((s) => (
                   <SelectItem key={s.id} value={s.id}>
                     <span className="flex items-center gap-2">
@@ -410,10 +411,10 @@ export const CalendarPage: React.FC = () => {
           {/* Plan filter */}
           {filterType === "plan" && plans && plans.length > 0 && (
             <Select value={filterPlanId} onValueChange={setFilterPlanId}>
-              <SelectTrigger className="bg-[#020617] border-slate-800 text-slate-200 w-48 h-8 text-xs">
+              <SelectTrigger className="bg-white dark:bg-[#020617] border-slate-800 text-slate-200 w-48 h-8 text-xs">
                 <SelectValue placeholder="Select plan..." />
               </SelectTrigger>
-              <SelectContent className="bg-[#0b1329] border-slate-800 text-slate-200">
+              <SelectContent className="bg-white dark:bg-[#0b1329] border-slate-800 text-slate-200">
                 {plans.map((p) => (
                   <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
                 ))}
@@ -425,7 +426,7 @@ export const CalendarPage: React.FC = () => {
           {totalCount > 0 && (
             <div className="ml-auto flex items-center gap-2">
               <span className="text-xs text-slate-500">{completedCount}/{totalCount} completed</span>
-              <div className="w-24 h-1.5 bg-slate-800 rounded-full overflow-hidden">
+              <div className="w-24 h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-gradient-to-r from-violet-600 to-emerald-500 rounded-full transition-all duration-500"
                   style={{ width: `${(completedCount / totalCount) * 100}%` }}
@@ -439,7 +440,7 @@ export const CalendarPage: React.FC = () => {
       {/* Calendar Grid */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-          <CardTitle className="text-lg font-bold flex items-center gap-2 text-slate-100">
+          <CardTitle className="text-lg font-bold flex items-center gap-2 text-slate-800 dark:text-slate-100">
             <CalendarIcon className="h-5 w-5 text-violet-400" />
             {MONTH_NAMES[month]} {year}
           </CardTitle>
@@ -447,14 +448,14 @@ export const CalendarPage: React.FC = () => {
             <Button
               variant="outline" size="icon"
               onClick={() => { if (month === 0) { setMonth(11); setYear(y => y - 1) } else setMonth(m => m - 1) }}
-              className="border-slate-800 hover:bg-slate-900 text-slate-400"
+              className="border-slate-300 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-900 text-slate-500 dark:text-slate-400"
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <Button
               variant="outline" size="icon"
               onClick={() => { if (month === 11) { setMonth(0); setYear(y => y + 1) } else setMonth(m => m + 1) }}
-              className="border-slate-800 hover:bg-slate-900 text-slate-400"
+              className="border-slate-300 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-900 text-slate-500 dark:text-slate-400"
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
@@ -568,7 +569,7 @@ export const CalendarPage: React.FC = () => {
                 className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all duration-150 group/item ${
                   task.status === "COMPLETED"
                     ? "bg-emerald-500/10 border-emerald-500/20 text-slate-350 hover:bg-emerald-500/15"
-                    : "bg-slate-900/40 border-slate-800 hover:bg-[#070d1e] hover:border-violet-500/40"
+                    : "bg-slate-100 dark:bg-slate-900/40 border-slate-800 hover:bg-slate-200 dark:hover:bg-[#070d1e] hover:border-violet-500/40"
                 }`}
                 title="Click to toggle study status"
               >

@@ -14,25 +14,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 export const DashboardPage: React.FC = () => {
   const queryClient = useQueryClient()
   
-  // Load initial active session and seconds from local storage to survive refreshes/rebuilds
-  const [activeSession, setActiveSession] = useState<any>(() => {
-    const saved = localStorage.getItem("active_study_session")
-    return saved ? JSON.parse(saved) : null
-  })
-  
-  const [seconds, setSeconds] = useState<number>(() => {
-    const savedSecs = localStorage.getItem("active_study_session_seconds")
-    if (savedSecs && localStorage.getItem("active_study_session")) {
-      // Calculate elapsed time since start if session is active
-      const savedSession = JSON.parse(localStorage.getItem("active_study_session")!)
-      if (savedSession.startedAt) {
-        const elapsed = Math.floor((Date.now() - new Date(savedSession.startedAt).getTime()) / 1000)
-        return elapsed > 0 ? elapsed : Number(savedSecs)
-      }
-      return Number(savedSecs)
-    }
-    return 0
-  })
+  // Active session state - will be restored from backend on dashboard load
+  const [activeSession, setActiveSession] = useState<any>(null)
+  const [seconds, setSeconds] = useState<number>(0)
 
   // Complete Session Modal State
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -47,15 +31,32 @@ export const DashboardPage: React.FC = () => {
     queryFn: getDashboard,
   })
 
+  // Restore active session from backend response on dashboard load
+  useEffect(() => {
+    if (dashboard?.activeSession && !activeSession) {
+      const backendSession = dashboard.activeSession
+      const sessionData = {
+        id: backendSession.sessionId,
+        scheduleId: backendSession.scheduleId,
+        status: backendSession.status,
+        startedAt: backendSession.startedAt,
+      }
+      setActiveSession(sessionData)
+      // Calculate elapsed seconds from startedAt
+      if (backendSession.startedAt) {
+        const startTime = new Date(backendSession.startedAt).getTime()
+        const elapsed = Math.floor((Date.now() - startTime) / 1000)
+        setSeconds(elapsed > 0 ? elapsed : 0)
+      }
+    }
+  }, [dashboard])
+
   // Mutations
   const startMutation = useMutation({
     mutationFn: startSession,
     onSuccess: (data) => {
-      const sessionData = { ...data, startedAt: new Date().toISOString() }
-      setActiveSession(sessionData)
+      setActiveSession(data)
       setSeconds(0)
-      localStorage.setItem("active_study_session", JSON.stringify(sessionData))
-      localStorage.setItem("active_study_session_seconds", "0")
       toast.success("Study session started! Timer is active.")
     },
     onError: (err: any) => {
@@ -83,8 +84,6 @@ export const DashboardPage: React.FC = () => {
       setActiveSession(null)
       setSeconds(0)
       setNotes("")
-      localStorage.removeItem("active_study_session")
-      localStorage.removeItem("active_study_session_seconds")
       queryClient.invalidateQueries({ queryKey: ["dashboard"] })
       queryClient.invalidateQueries({ queryKey: ["analytics"], exact: false })
       queryClient.invalidateQueries({ queryKey: ["allSchedules"] })
@@ -101,9 +100,7 @@ export const DashboardPage: React.FC = () => {
     if (activeSession && activeSession.status === "IN_PROGRESS") {
       interval = setInterval(() => {
         setSeconds((prev) => {
-          const next = prev + 1
-          localStorage.setItem("active_study_session_seconds", String(next))
-          return next
+          return prev + 1
         })
       }, 1000)
     } else {
@@ -141,8 +138,8 @@ export const DashboardPage: React.FC = () => {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">{item.title}</span>
-                  <p className="text-3xl font-extrabold mt-2 text-slate-100">{item.value}</p>
+                  <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">{item.title}</span>
+                  <p className="text-3xl font-extrabold mt-2 text-slate-900 dark:text-slate-100">{item.value}</p>
                 </div>
                 <div className={`p-3 rounded-xl border ${item.color.split(" ").slice(1).join(" ")}`}>
                   <item.icon className={`h-6 w-6 ${item.color.split(" ")[0]}`} />
@@ -206,7 +203,7 @@ export const DashboardPage: React.FC = () => {
                         In Progress
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-900 text-slate-400 border border-slate-800">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-200 dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-800">
                         <Clock className="h-3.5 w-3.5" />
                         Not Started
                       </span>
