@@ -492,14 +492,14 @@ export const CalendarPage: React.FC = () => {
                     hasTasks ? "cursor-pointer" : ""
                   } ${
                     isToday
-                      ? "border-violet-500 bg-violet-950/20 shadow-md shadow-violet-500/5"
+                      ? "border-violet-500 bg-violet-100 dark:bg-violet-950/20 shadow-md shadow-violet-500/5"
                       : allCompleted
-                      ? "border-emerald-500/40 bg-emerald-950/15 hover:bg-emerald-950/25"
+                      ? "border-emerald-500/40 bg-emerald-50 dark:bg-emerald-950/15 hover:bg-emerald-100 dark:hover:bg-emerald-950/25"
                       : partiallyCompleted
-                      ? "border-emerald-700/25 bg-emerald-950/5 hover:bg-emerald-950/10"
+                      ? "border-emerald-700/25 bg-emerald-50/50 dark:bg-emerald-950/5 hover:bg-emerald-50 dark:hover:bg-emerald-950/10"
                       : hasTasks
-                      ? "border-slate-700/60 bg-[#070d1e]/60 hover:bg-[#070d1e]/85"
-                      : "border-slate-800/40 bg-[#070d1e]/20 hover:bg-[#070d1e]/40"
+                      ? "border-slate-300 dark:border-slate-700/60 bg-slate-50 dark:bg-[#070d1e]/60 hover:bg-slate-100 dark:hover:bg-[#070d1e]/85"
+                      : "border-slate-200 dark:border-slate-800/40 bg-white dark:bg-[#070d1e]/20 hover:bg-slate-50 dark:hover:bg-[#070d1e]/40"
                   }`}
                 >
                   <span className={`text-xs font-bold ${isToday ? "bg-violet-600 text-white px-1.5 py-0.5 rounded-md" : "text-slate-500"}`}>
@@ -588,7 +588,7 @@ export const CalendarPage: React.FC = () => {
                       </span>
                     )}
                   </div>
-                  <span className="text-sm font-bold text-slate-200 truncate">Lecture {task.classNo}: {task.topic}</span>
+                  <span className="text-sm font-bold text-slate-800 dark:text-slate-200 truncate">Lecture {task.classNo}: {task.topic}</span>
                   <span className="text-xs text-slate-400">{task.durationDisplay}</span>
                 </div>
                 <div className="shrink-0">

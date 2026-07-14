@@ -14,9 +14,26 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 export const DashboardPage: React.FC = () => {
   const queryClient = useQueryClient()
   
-  // Active session state - will be restored from backend on dashboard load
-  const [activeSession, setActiveSession] = useState<any>(null)
-  const [seconds, setSeconds] = useState<number>(0)
+  // Active session state — restored from localStorage on mount for instant recovery
+  const [activeSession, setActiveSession] = useState<any>(() => {
+    try {
+      const saved = localStorage.getItem("active_study_session")
+      return saved ? JSON.parse(saved) : null
+    } catch { return null }
+  })
+  const [seconds, setSeconds] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem("active_study_session")
+      if (saved) {
+        const session = JSON.parse(saved)
+        if (session.startedAt) {
+          const elapsed = Math.floor((Date.now() - new Date(session.startedAt).getTime()) / 1000)
+          return elapsed > 0 ? elapsed : 0
+        }
+      }
+    } catch {}
+    return 0
+  })
 
   // Complete Session Modal State
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -31,7 +48,7 @@ export const DashboardPage: React.FC = () => {
     queryFn: getDashboard,
   })
 
-  // Restore active session from backend response on dashboard load
+  // Also restore from backend response (works after backend deploy, or cross-browser)
   useEffect(() => {
     if (dashboard?.activeSession && !activeSession) {
       const backendSession = dashboard.activeSession
@@ -42,7 +59,7 @@ export const DashboardPage: React.FC = () => {
         startedAt: backendSession.startedAt,
       }
       setActiveSession(sessionData)
-      // Calculate elapsed seconds from startedAt
+      localStorage.setItem("active_study_session", JSON.stringify(sessionData))
       if (backendSession.startedAt) {
         const startTime = new Date(backendSession.startedAt).getTime()
         const elapsed = Math.floor((Date.now() - startTime) / 1000)
@@ -55,8 +72,10 @@ export const DashboardPage: React.FC = () => {
   const startMutation = useMutation({
     mutationFn: startSession,
     onSuccess: (data) => {
-      setActiveSession(data)
+      const sessionData = { ...data, startedAt: data.startedAt || new Date().toISOString() }
+      setActiveSession(sessionData)
       setSeconds(0)
+      localStorage.setItem("active_study_session", JSON.stringify(sessionData))
       toast.success("Study session started! Timer is active.")
     },
     onError: (err: any) => {
@@ -84,6 +103,7 @@ export const DashboardPage: React.FC = () => {
       setActiveSession(null)
       setSeconds(0)
       setNotes("")
+      localStorage.removeItem("active_study_session")
       queryClient.invalidateQueries({ queryKey: ["dashboard"] })
       queryClient.invalidateQueries({ queryKey: ["analytics"], exact: false })
       queryClient.invalidateQueries({ queryKey: ["allSchedules"] })
@@ -209,7 +229,7 @@ export const DashboardPage: React.FC = () => {
                       </span>
                     )}
 
-                    {task.status !== "COMPLETED" && !activeSession && (
+                    {task.status !== "COMPLETED" && task.status !== "IN_PROGRESS" && !activeSession && (
                       <Button size="sm" onClick={() => startMutation.mutate(task.id)} className="bg-indigo-600 text-white hover:bg-indigo-500">
                         <Play className="h-3.5 w-3.5 mr-1" /> Start Study
                       </Button>
