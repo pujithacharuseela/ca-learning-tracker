@@ -144,15 +144,27 @@ body {
   color: #0f172a !important;
 }
 
-.light [data-slot="card"] .text-slate-200,
-.light [data-slot="card"] .text-slate-300 {
-  color: #1e293b !important;
-}
-
-.light [data-slot="card"] .bg-\[\#0b1329\]\/20 {
+.light .bg-\[\#0b1329\]\/20 {
   background-color: #ffffff !important;
   border-color: #e2e8f0 !important;
 }
+
+.light tr.hover\:bg-\[\#070d1e\]\/80:hover {
+  background-color: #f1f5f9 !important;
+}
+
+.light .text-slate-200 {
+  color: #1e293b !important;
+}
+
+.light .text-slate-300 {
+  color: #334155 !important;
+}
+
+.light .text-slate-400 {
+  color: #475569 !important;
+}
+
 
 
 /* Fix sidebar in light mode */
