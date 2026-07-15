@@ -130,9 +130,14 @@ export const DashboardPage: React.FC = () => {
   }, [activeSession])
 
   const formatTime = (totalSecs: number) => {
-    const mins = Math.floor(totalSecs / 60)
+    const hrs = Math.floor(totalSecs / 3600)
+    const mins = Math.floor((totalSecs % 3600) / 60)
     const secs = totalSecs % 60
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
+    
+    if (hrs > 0) {
+      return `${hrs}h ${mins}m ${secs}s`
+    }
+    return `${mins}m ${secs}s`
   }
 
   if (isLoading) {

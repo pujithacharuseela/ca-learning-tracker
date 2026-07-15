@@ -197,6 +197,18 @@ body {
   background-color: #ffffff !important;
   color: #0f172a !important;
   border: 1px solid #cbd5e1 !important;
+  outline: none !important;
+  box-shadow: none !important;
+  --ring: transparent !important;
+}
+
+.light [data-slot="select-trigger"]:focus,
+.light button[role="combobox"]:focus,
+.light [data-slot="select-trigger"][data-state="open"],
+.light button[role="combobox"][data-state="open"] {
+  border-color: #7c3aed !important;
+  outline: none !important;
+  box-shadow: 0 0 0 1px #7c3aed !important;
 }
 
 .light [data-slot="select-content"],
