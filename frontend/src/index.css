@@ -182,25 +182,50 @@ body {
 /* Dialog light mode */
 .light [role="dialog"] {
   background-color: #ffffff !important;
-  border-color: #e2e8f0 !important;
   color: #0f172a !important;
+  border-color: #e2e8f0 !important;
+}
+.light [role="dialog"] label,
+.light [role="dialog"] [data-slot="label"],
+.light [role="dialog"] .text-sm.font-medium {
+  color: #374151 !important;
+}
+
+/* Select trigger and items in light mode */
+.light [data-slot="select-trigger"],
+.light button[role="combobox"] {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+.light [data-slot="select-content"],
+.light [role="listbox"] {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+}
+
+.light [data-slot="select-item"],
+.light [role="option"] {
+  background-color: #ffffff !important;
+  color: #374151 !important;
+}
+
+.light [data-slot="select-item"]:hover,
+.light [role="option"]:hover,
+.light [data-slot="select-item"][data-highlighted],
+.light [role="option"][data-highlighted] {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+  cursor: pointer;
 }
 
 /* Select dropdown in light mode */
 .light [data-radix-popper-content-wrapper] [class*="bg-[#0b1329]"] {
   background-color: #ffffff !important;
   color: #0f172a !important;
-  border-color: #e2e8f0 !important;
-}
-
-.light [data-slot="select-content"],
-.light [data-slot="select-item"] {
-  background-color: #ffffff !important;
-  color: #0f172a !important;
-}
-
-.light .bg-\[\#0b1329\]\/20 {
-  background-color: #ffffff !important;
   border-color: #e2e8f0 !important;
 }
 
