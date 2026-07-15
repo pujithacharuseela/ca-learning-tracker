@@ -195,56 +195,93 @@ export const DashboardPage: React.FC = () => {
 
       {/* Main Panel Grid */}
       <div className="grid gap-6 md:grid-cols-3">
-        {/* Today's Tasks */}
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-slate-500" /> Today's Scheduled Classes
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {dashboard?.todayTasks?.length === 0 ? (
-              <p className="text-sm text-slate-500 py-6 text-center">No tasks scheduled for today. Enjoy your day off!</p>
-            ) : (
-              dashboard?.todayTasks?.map((task: any) => (
-                <div key={task.id} className="flex justify-between items-center border-b pb-3 last:border-0 last:pb-0">
-                  <div>
-                    <span className="text-sm font-semibold">{task.topic}</span>
-                    <div className="flex gap-2 text-xs text-slate-500 mt-1">
-                      <span>Class {task.classNo}</span>
-                      <span>•</span>
-                      <span>{task.durationDisplay}</span>
+        <div className="md:col-span-2 space-y-6">
+          {/* Overdue / Pending Tasks */}
+          {dashboard?.overdueTasks && dashboard.overdueTasks.length > 0 && (
+            <Card className="border-rose-200 bg-rose-50/10 dark:border-rose-950/30 dark:bg-rose-950/5">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-rose-600 dark:text-rose-400">
+                  <Clock className="h-5 w-5 animate-pulse" /> Overdue Scheduled Classes
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {dashboard.overdueTasks.map((task: any) => (
+                  <div key={task.id} className="flex justify-between items-center border-b border-rose-100/50 dark:border-rose-950/20 pb-3 last:border-0 last:pb-0">
+                    <div>
+                      <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">{task.topic}</span>
+                      <div className="flex gap-2 text-xs text-rose-550 dark:text-rose-450 mt-1">
+                        <span>Scheduled: {task.scheduledDate}</span>
+                        <span>•</span>
+                        <span>{task.durationDisplay}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-500 border border-rose-500/20">
+                        Overdue
+                      </span>
+                      {!activeSession && (
+                        <Button size="sm" onClick={() => startMutation.mutate(task.id)} className="bg-rose-600 text-white hover:bg-rose-500 border-none">
+                          <Play className="h-3.5 w-3.5 mr-1" /> Start Study
+                        </Button>
+                      )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    {task.status === "COMPLETED" ? (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                        <CheckCircle className="h-3.5 w-3.5" />
-                        Completed
-                      </span>
-                    ) : task.status === "IN_PROGRESS" ? (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20 animate-pulse">
-                        <Play className="h-3.5 w-3.5 fill-blue-400/25" />
-                        In Progress
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-200 dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-800">
-                        <Clock className="h-3.5 w-3.5" />
-                        Not Started
-                      </span>
-                    )}
+                ))}
+              </CardContent>
+            </Card>
+          )}
 
-                    {task.status !== "COMPLETED" && task.status !== "IN_PROGRESS" && !activeSession && (
-                      <Button size="sm" onClick={() => startMutation.mutate(task.id)} className="bg-indigo-600 text-white hover:bg-indigo-500">
-                        <Play className="h-3.5 w-3.5 mr-1" /> Start Study
-                      </Button>
-                    )}
+          {/* Today's Tasks */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5 text-slate-500" /> Today's Scheduled Classes
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {dashboard?.todayTasks?.length === 0 ? (
+                <p className="text-sm text-slate-500 py-6 text-center">No tasks scheduled for today. Enjoy your day off!</p>
+              ) : (
+                dashboard?.todayTasks?.map((task: any) => (
+                  <div key={task.id} className="flex justify-between items-center border-b pb-3 last:border-0 last:pb-0">
+                    <div>
+                      <span className="text-sm font-semibold">{task.topic}</span>
+                      <div className="flex gap-2 text-xs text-slate-500 mt-1">
+                        <span>Class {task.classNo}</span>
+                        <span>•</span>
+                        <span>{task.durationDisplay}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {task.status === "COMPLETED" ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                          <CheckCircle className="h-3.5 w-3.5" />
+                          Completed
+                        </span>
+                      ) : task.status === "IN_PROGRESS" ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20 animate-pulse">
+                          <Play className="h-3.5 w-3.5 fill-blue-400/25" />
+                          In Progress
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-200 dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-800">
+                          <Clock className="h-3.5 w-3.5" />
+                          Not Started
+                        </span>
+                      )}
+
+                      {task.status !== "COMPLETED" && task.status !== "IN_PROGRESS" && !activeSession && (
+                        <Button size="sm" onClick={() => startMutation.mutate(task.id)} className="bg-indigo-600 text-white hover:bg-indigo-500">
+                          <Play className="h-3.5 w-3.5 mr-1" /> Start Study
+                        </Button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))
-            )}
-          </CardContent>
-        </Card>
+                ))
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Badges / Streaks Panel */}
         <Card>

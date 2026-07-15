@@ -37,6 +37,7 @@ public class DashboardService {
         List<Schedule> todaySchedules = scheduleRepository.findByUserIdAndScheduledDate(user.getId(), today);
         List<Schedule> upcomingSchedules = scheduleRepository.findByUserIdAndScheduledDateBetween(
                 user.getId(), today.plusDays(1), today.plusDays(7));
+        List<Schedule> overdueSchedules = scheduleRepository.findOverdueSchedules(user.getId(), today);
 
         // 2. Calculations
         long completedCount = studySessionRepository.countByUserIdAndStatus(user.getId(), StudyStatus.COMPLETED);
@@ -79,6 +80,7 @@ public class DashboardService {
                 .totalStudyHours(totalHours)
                 .todayTasks(todaySchedules.stream().map(this::mapToScheduleResponse).collect(Collectors.toList()))
                 .upcomingTasks(upcomingSchedules.stream().map(this::mapToScheduleResponse).collect(Collectors.toList()))
+                .overdueTasks(overdueSchedules.stream().map(this::mapToScheduleResponse).collect(Collectors.toList()))
                 .recentBadges(badges)
                 .activeSession(activeSessionInfo)
                 .build();

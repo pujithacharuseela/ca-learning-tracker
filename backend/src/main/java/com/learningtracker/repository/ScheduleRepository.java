@@ -19,6 +19,9 @@ public interface ScheduleRepository extends JpaRepository<Schedule, UUID> {
     
     List<Schedule> findByUserIdAndStatus(UUID userId, com.learningtracker.constant.enums.StudyStatus status);
 
+    @Query("SELECT s FROM Schedule s WHERE s.user.id = :userId AND s.scheduledDate < :date AND s.status IN ('SCHEDULED', 'IN_PROGRESS') ORDER BY s.scheduledDate ASC")
+    List<Schedule> findOverdueSchedules(@Param("userId") UUID userId, @Param("date") LocalDate date);
+
     @Query("SELECT COUNT(s) FROM Schedule s WHERE s.user.id = :userId")
     long countByUserId(@Param("userId") UUID userId);
 

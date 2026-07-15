@@ -19,6 +19,7 @@ public class DashboardResponse {
     private long totalStudyHours;
     private List<ScheduleResponse> todayTasks;
     private List<ScheduleResponse> upcomingTasks;
+    private List<ScheduleResponse> overdueTasks;
     private List<BadgeResponse> recentBadges;
     private ActiveSessionInfo activeSession;
 
